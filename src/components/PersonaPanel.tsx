@@ -34,6 +34,17 @@ interface Props {
   onClose: () => void
 }
 
+const CloseIcon: FC = () => (
+  <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+    <path
+      d="M4 4L12 12M12 4L4 12"
+      stroke="currentColor"
+      strokeWidth="1.6"
+      strokeLinecap="round"
+    />
+  </svg>
+)
+
 export const PersonaPanel: FC<Props> = ({ onClose }) => {
   const [state, setState] = useState<AppState | null>(null)
   const [personas, setPersonas] = useState<PersonaCard[]>([])
@@ -52,15 +63,24 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
     const [initState, initPersonas] = await Promise.all([getAppState(), listPersonas()])
     setState(initState)
 
-    // Incremental seed install: add missing built-ins without touching
-    // user-edited or user-created personas. Trade-off: a persona deleted
-    // by the user will re-appear on next boot. v0.2 can track deleted
-    // seed ids to make deletion sticky.
-    const existingIds = new Set(initPersonas.map((p) => p.id))
-    const missing = SEED_PERSONAS.filter((s) => !existingIds.has(s.id))
+    // Incremental seed install: add missing built-ins, and refresh any
+    // already-installed seed the user hasn't customized (so shipping new
+    // seed content — new scenario/worldInfo/etc. fields — reaches existing
+    // installs instead of freezing at whatever shape was first installed).
+    // User-edited or user-created personas (isCustomized) are never touched.
+    // Trade-off: a seed persona deleted by the user re-appears on next boot;
+    // v0.2 can track deleted seed ids to make deletion sticky.
+    const existingById = new Map(initPersonas.map((p) => [p.id, p]))
+    const toInstall = SEED_PERSONAS.filter((seed) => {
+      const existing = existingById.get(seed.id)
+      return !existing || !existing.isCustomized
+    }).map((seed) => {
+      const existing = existingById.get(seed.id)
+      return existing ? { ...seed, createdAt: existing.createdAt } : seed
+    })
 
-    if (missing.length > 0) {
-      for (const seed of missing) {
+    if (toInstall.length > 0) {
+      for (const seed of toInstall) {
         await upsertPersona(seed)
       }
       setPersonas(await listPersonas())
@@ -82,7 +102,11 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
   async function handleDeactivate() {
     const next = await setAppState({ activePersonaId: null, activeBackgroundId: null })
     setState(next)
-    setToast("Persona deactivated. Start a new chat for a clean slate.")
+    showToast("Persona deactivated. Start a new chat for a clean slate.")
+  }
+
+  function showToast(message: string) {
+    setToast(message)
     setTimeout(() => setToast(null), 3500)
   }
 
@@ -94,53 +118,39 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
     })
     setState(next)
 
-    let message: string
     if (result.ok && result.method === "dom-injection") {
-      message = "Persona applied. Press Enter to send."
+      showToast("Persona ready — press Enter to send.")
     } else if (result.ok && result.method === "clipboard-fallback") {
-      message = "Input not found; copied to clipboard. Paste to activate."
+      showToast("Copied to clipboard — paste into the chat to activate.")
     } else {
-      message = "Failed to apply persona. Try refreshing DeepSeek."
+      showToast("Couldn't reach the chat input. Try refreshing the page.")
     }
-
-    setToast(message)
-    setTimeout(() => setToast(null), 3500)
   }
 
   if (contextInvalidated) {
     return (
-      <div className="flex h-full flex-col bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-        <header className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-800">
-          <div>
-            <div className="text-sm font-semibold">Persona.chat</div>
-            <div className="text-xs text-gray-500 dark:text-gray-400">Reconnecting…</div>
-          </div>
+      <div className="flex h-full flex-col font-sans">
+        <header className="flex items-center justify-between px-4 py-3">
+          <span className="text-sm font-semibold tracking-tight">Persona</span>
           <button
             onClick={onClose}
-            className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800"
+            className="rounded-md p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200"
             aria-label="Close"
           >
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path
-                d="M4 4L12 12M12 4L4 12"
-                stroke="currentColor"
-                strokeWidth="1.6"
-                strokeLinecap="round"
-              />
-            </svg>
+            <CloseIcon />
           </button>
         </header>
-        <div className="flex flex-1 flex-col items-center justify-center p-6 text-center">
-          <div className="mb-2 text-sm font-medium text-gray-900 dark:text-gray-100">
-            Extension was updated
+        <div className="flex flex-1 flex-col items-center justify-center px-6 pb-8 pt-2 text-center">
+          <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-persona-50 text-lg dark:bg-gray-800">
+            ↻
           </div>
-          <p className="mb-4 text-xs text-gray-500 dark:text-gray-400">
-            Persona.chat reloaded while this tab was open. Refresh the page to
-            reconnect — your personas are safe.
+          <div className="mb-1 text-sm font-medium">Extension was updated</div>
+          <p className="mb-4 max-w-[240px] text-xs leading-relaxed text-gray-500 dark:text-gray-400">
+            Refresh the page to reconnect — your personas are safe.
           </p>
           <button
             onClick={() => window.location.reload()}
-            className="rounded-md bg-persona-600 px-4 py-2 text-sm font-medium text-white hover:bg-persona-700"
+            className="rounded-lg bg-persona-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-persona-700"
           >
             Refresh page
           </button>
@@ -151,77 +161,64 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
 
   if (!state) {
     return (
-      <div className="p-6 text-center text-sm text-gray-500">Loading…</div>
+      <div className="flex items-center justify-center p-8 font-sans">
+        <span className="text-xs text-gray-400">Loading…</span>
+      </div>
     )
   }
 
   const activePersona = personas.find((p) => p.id === state.activePersonaId) ?? null
+  // Legacy "original" mode maps to the persona surface (tab was removed).
+  const effectiveMode: ModeKey = state.activeMode === "original" ? "persona" : state.activeMode
 
   return (
-    <div className="flex h-full flex-col bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
-      <header className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-800">
-        <div>
-          <div className="text-sm font-semibold">Persona.chat</div>
-          <div className="text-xs text-gray-500 dark:text-gray-400">v0 · Local only</div>
+    <div className="relative flex h-full flex-col font-sans">
+      <header className="flex items-center justify-between px-4 pt-3">
+        <div className="flex items-center gap-2">
+          <span className="h-2 w-2 rounded-full bg-gradient-to-br from-persona-400 to-persona-600" />
+          <span className="text-sm font-semibold tracking-tight text-gray-900 dark:text-gray-50">
+            Persona
+          </span>
         </div>
         <button
           onClick={onClose}
-          className="rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800"
+          className="rounded-md p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200"
           aria-label="Close"
         >
-          <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-            <path
-              d="M4 4L12 12M12 4L4 12"
-              stroke="currentColor"
-              strokeWidth="1.6"
-              strokeLinecap="round"
-            />
-          </svg>
+          <CloseIcon />
         </button>
       </header>
 
-      <ModeTabs active={state.activeMode} onChange={handleModeChange} />
+      <ModeTabs active={effectiveMode} onChange={handleModeChange} />
 
       {activePersona && (
-        <div className="flex items-center gap-2 border-b border-persona-100 bg-persona-50 px-4 py-2 dark:border-gray-800 dark:bg-gray-800">
+        <div className="mx-4 mt-3 flex items-center gap-2.5 rounded-xl border border-persona-100 bg-persona-50/70 px-3 py-2 dark:border-persona-900/60 dark:bg-persona-950/40">
           <span className="text-lg leading-none" aria-hidden>
             {activePersona.avatarEmoji || "🎭"}
           </span>
           <div className="min-w-0 flex-1">
-            <div className="truncate text-xs font-semibold text-persona-700 dark:text-persona-100">
+            <div className="truncate text-xs font-medium text-gray-900 dark:text-gray-100">
               {activePersona.name}
             </div>
-            <div className="text-[10px] text-persona-600/70 dark:text-gray-400">
-              Active persona
-            </div>
+            <div className="text-[10px] text-persona-600 dark:text-persona-300">Active</div>
           </div>
           <button
             onClick={handleDeactivate}
-            className="rounded border border-persona-500/40 px-2 py-1 text-[10px] font-medium text-persona-700 hover:bg-persona-100 dark:text-persona-100 dark:hover:bg-gray-700"
+            className="rounded-md px-2 py-1 text-[10px] font-medium text-gray-500 transition hover:bg-white hover:text-gray-800 hover:shadow-sm dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
           >
             Deactivate
           </button>
         </div>
       )}
 
-      <main className="flex-1 overflow-y-auto">
-        {state.activeMode === "original" && (
-          <div className="p-6 text-sm text-gray-500">
-            <p className="mb-2 font-medium text-gray-700 dark:text-gray-300">
-              DeepSeek stays untouched.
-            </p>
-            <p className="opacity-80">
-              Switch tabs above when you want to layer a persona or image prompt.
-            </p>
-          </div>
-        )}
-        {state.activeMode === "image" && (
+      <main className="scrollbar-slim mt-1 flex-1 overflow-y-auto pb-2">
+        {effectiveMode === "image" && (
           <BackgroundPicker
             activeBackgroundId={state.activeBackgroundId}
             onSelect={handleBackgroundSelect}
           />
         )}
-        {state.activeMode === "persona" && (
+        {effectiveMode === "persona" && (
           <PersonaList
             personas={personas}
             activePersonaId={state.activePersonaId}
@@ -231,8 +228,10 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
       </main>
 
       {toast && (
-        <div className="border-t border-gray-200 bg-persona-50 px-4 py-2 text-xs text-persona-700 dark:border-gray-800 dark:bg-gray-800 dark:text-persona-100">
-          {toast}
+        <div className="pointer-events-none absolute inset-x-4 bottom-3 animate-fade-up">
+          <div className="rounded-xl bg-gray-900/95 px-3.5 py-2.5 text-center text-xs font-medium text-white shadow-lg backdrop-blur dark:bg-white/95 dark:text-gray-900">
+            {toast}
+          </div>
         </div>
       )}
     </div>

@@ -13,6 +13,12 @@ import {
 } from "~storage"
 import type { PersonaCard, WorldInfoEntry } from "~types"
 
+const INPUT_CLS =
+  "w-full rounded-lg border border-gray-200 bg-gray-50/60 px-3 py-2 text-sm outline-none transition placeholder:text-gray-400 focus:border-persona-400 focus:bg-white focus:ring-2 focus:ring-persona-500/20 dark:border-gray-700 dark:bg-gray-800/80 dark:focus:border-persona-500 dark:focus:bg-gray-800"
+
+const INPUT_CLS_SMALL =
+  "w-full rounded-lg border border-gray-200 bg-gray-50/60 px-2.5 py-1.5 text-xs outline-none transition placeholder:text-gray-400 focus:border-persona-400 focus:bg-white focus:ring-2 focus:ring-persona-500/20 dark:border-gray-700 dark:bg-gray-800/80 dark:focus:border-persona-500 dark:focus:bg-gray-800"
+
 /**
  * Options page is the primary create/edit surface. Content-script panel is
  * consumption-only (apply, browse); mutation flows through here. Keeps the
@@ -84,7 +90,7 @@ export default function Options() {
         .filter(Boolean)
     }))
 
-    await upsertPersona({ ...editing, worldInfo: finalWorldInfo })
+    await upsertPersona({ ...editing, worldInfo: finalWorldInfo, isCustomized: true })
     setEditing(null)
     await refresh()
   }
@@ -179,23 +185,23 @@ export default function Options() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100">
+    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 dark:bg-gray-950 dark:text-gray-100">
       <div className="mx-auto max-w-4xl px-6 py-8">
         <header className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Persona.chat</h1>
+            <h1 className="flex items-center gap-2.5 text-2xl font-bold tracking-tight"><span className="h-3 w-3 rounded-full bg-gradient-to-br from-persona-400 to-persona-600" />Persona</h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">
-              Manage your AI personas · v0 (local storage)
+              Your character library · stored locally
             </p>
           </div>
           <div className="flex items-center gap-2">
             <button
               onClick={exportAll}
-              className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+              className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
             >
               Export
             </button>
-            <label className="cursor-pointer rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+            <label className="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800">
               Import
               <input
                 type="file"
@@ -210,7 +216,7 @@ export default function Options() {
             </label>
             <button
               onClick={startCreate}
-              className="rounded-md bg-persona-600 px-4 py-2 text-sm font-medium text-white hover:bg-persona-700"
+              className="rounded-lg bg-persona-600 px-4 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-persona-700"
             >
               + New persona
             </button>
@@ -226,7 +232,7 @@ export default function Options() {
               {personas.map((p) => (
                 <li
                   key={p.id}
-                  className="rounded-lg border border-gray-200 bg-white p-3 dark:border-gray-800 dark:bg-gray-900"
+                  className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-sm transition hover:shadow dark:border-gray-800 dark:bg-gray-900"
                 >
                   <div className="flex items-start gap-3">
                     <span className="text-2xl">{p.avatarEmoji}</span>
@@ -259,7 +265,7 @@ export default function Options() {
                 </li>
               ))}
               {personas.length === 0 && (
-                <li className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-700">
+                <li className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400 dark:border-gray-700">
                   No personas yet. Click "+ New persona" to start.
                 </li>
               )}
@@ -271,12 +277,12 @@ export default function Options() {
               {editing ? "Editor" : "Preview"}
             </h2>
             {editing ? (
-              <div className="space-y-3 rounded-lg border border-gray-200 bg-white p-4 dark:border-gray-800 dark:bg-gray-900">
+              <div className="space-y-3.5 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <FormField label="Name">
                   <input
                     value={editing.name}
                     onChange={(e) => setEditing({ ...editing, name: e.target.value })}
-                    className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800"
+                    className={INPUT_CLS}
                   />
                 </FormField>
                 <FormField label="Avatar emoji">
@@ -285,7 +291,7 @@ export default function Options() {
                     onChange={(e) =>
                       setEditing({ ...editing, avatarEmoji: e.target.value })
                     }
-                    className="w-24 rounded border border-gray-300 bg-white px-2 py-1.5 text-lg dark:border-gray-700 dark:bg-gray-800"
+                    className="w-24 rounded-lg border border-gray-200 bg-gray-50/60 px-3 py-2 text-lg outline-none transition focus:border-persona-400 focus:bg-white focus:ring-2 focus:ring-persona-500/20 dark:border-gray-700 dark:bg-gray-800/80 dark:focus:border-persona-500 dark:focus:bg-gray-800"
                   />
                 </FormField>
                 <FormField label="Persona prompt (personality)">
@@ -295,7 +301,7 @@ export default function Options() {
                       setEditing({ ...editing, personaPrompt: e.target.value })
                     }
                     rows={6}
-                    className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800"
+                    className={INPUT_CLS}
                   />
                 </FormField>
                 <FormField label="Scenario (optional) — the setting/situation">
@@ -303,7 +309,7 @@ export default function Options() {
                     value={editing.scenario ?? ""}
                     onChange={(e) => setEditing({ ...editing, scenario: e.target.value })}
                     rows={2}
-                    className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800"
+                    className={INPUT_CLS}
                   />
                 </FormField>
                 <FormField label="Example dialogue (optional) — locks voice/style">
@@ -314,7 +320,7 @@ export default function Options() {
                     }
                     rows={3}
                     placeholder={"User: ...\nCharacter: ..."}
-                    className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800"
+                    className={INPUT_CLS}
                   />
                 </FormField>
                 <FormField label="Greeting (optional)">
@@ -323,7 +329,7 @@ export default function Options() {
                     onChange={(e) =>
                       setEditing({ ...editing, greeting: e.target.value })
                     }
-                    className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800"
+                    className={INPUT_CLS}
                   />
                 </FormField>
                 <FormField label="In-character reminder (optional) — resurfaces every few enrich-taps to fight drift">
@@ -332,7 +338,7 @@ export default function Options() {
                     onChange={(e) =>
                       setEditing({ ...editing, driftReminder: e.target.value })
                     }
-                    className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800"
+                    className={INPUT_CLS}
                   />
                 </FormField>
                 <FormField label="Background (optional)">
@@ -341,7 +347,7 @@ export default function Options() {
                     onChange={(e) =>
                       setEditing({ ...editing, backgroundId: e.target.value || undefined })
                     }
-                    className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800"
+                    className={INPUT_CLS}
                   >
                     <option value="">None</option>
                     {BACKGROUND_PRESETS.map((preset) => (
@@ -368,7 +374,7 @@ export default function Options() {
                     {(editing.worldInfo ?? []).map((entry) => (
                       <div
                         key={entry.id}
-                        className="space-y-1 rounded border border-gray-200 p-2 dark:border-gray-700"
+                        className="space-y-1.5 rounded-xl border border-gray-200 bg-gray-50/40 p-2.5 dark:border-gray-700 dark:bg-gray-800/40"
                       >
                         <div className="flex items-center gap-2">
                           <input
@@ -380,7 +386,7 @@ export default function Options() {
                               }))
                             }
                             placeholder="keys, comma, separated"
-                            className="flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-xs dark:border-gray-700 dark:bg-gray-800"
+                            className={"flex-1 " + INPUT_CLS_SMALL}
                           />
                           <button
                             onClick={() => removeWorldInfoRow(entry.id)}
@@ -395,7 +401,7 @@ export default function Options() {
                           onChange={(e) => updateWorldInfoContent(entry.id, e.target.value)}
                           rows={2}
                           placeholder="Lore to inject when a key matches the draft message"
-                          className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs dark:border-gray-700 dark:bg-gray-800"
+                          className={INPUT_CLS_SMALL}
                         />
                       </div>
                     ))}
@@ -408,20 +414,20 @@ export default function Options() {
                 <div className="flex gap-2 pt-2">
                   <button
                     onClick={save}
-                    className="rounded-md bg-persona-600 px-4 py-1.5 text-sm font-medium text-white hover:bg-persona-700"
+                    className="rounded-lg bg-persona-600 px-4 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-persona-700"
                   >
                     Save
                   </button>
                   <button
                     onClick={() => setEditing(null)}
-                    className="rounded-md border border-gray-300 px-4 py-1.5 text-sm dark:border-gray-700"
+                    className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
                   >
                     Cancel
                   </button>
                 </div>
               </div>
             ) : (
-              <div className="rounded-lg border border-dashed border-gray-300 p-6 text-center text-sm text-gray-500 dark:border-gray-700">
+              <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400 dark:border-gray-700">
                 Select a persona to edit, or click "+ New persona".
               </div>
             )}

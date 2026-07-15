@@ -38,21 +38,26 @@ export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) =
 
   if (personas.length === 0) {
     return (
-      <div className="p-6 text-center text-sm text-gray-500">
-        <p className="mb-2">No personas yet.</p>
-        <p className="text-xs opacity-70">Open the options page to create one.</p>
+      <div className="px-6 py-10 text-center">
+        <div className="mb-2 text-2xl">🎭</div>
+        <p className="mb-1 text-sm font-medium text-gray-800 dark:text-gray-200">
+          No personas yet
+        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">
+          Create one from the options page.
+        </p>
       </div>
     )
   }
 
   return (
     <div className="flex flex-col">
-      <div className="space-y-2 border-b border-gray-100 px-4 py-3 dark:border-gray-800">
+      <div className="space-y-2 px-4 pb-2 pt-3">
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder="Search personas…"
-          className="w-full rounded-md border border-gray-200 bg-gray-50 px-3 py-1.5 text-xs text-gray-900 placeholder:text-gray-400 focus:border-persona-500 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100"
+          className="w-full rounded-lg border border-gray-200 bg-gray-50/80 px-3 py-2 text-xs text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-persona-400 focus:bg-white focus:ring-2 focus:ring-persona-500/20 dark:border-gray-700 dark:bg-gray-800/80 dark:text-gray-100 dark:focus:border-persona-500 dark:focus:bg-gray-800"
         />
         {allTags.length > 0 && (
           <div className="flex flex-wrap gap-1">
@@ -62,10 +67,10 @@ export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) =
                 <button
                   key={tag}
                   onClick={() => setTagFilter(selected ? null : tag)}
-                  className={`rounded-full px-2 py-0.5 text-[10px] font-medium transition ${
+                  className={`rounded-full px-2.5 py-1 text-[10px] font-medium transition ${
                     selected
-                      ? "bg-persona-600 text-white"
-                      : "bg-gray-100 text-gray-600 hover:bg-persona-50 hover:text-persona-700 dark:bg-gray-800 dark:text-gray-300"
+                      ? "bg-persona-600 text-white shadow-sm"
+                      : "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
                   }`}
                 >
                   {tag}
@@ -76,57 +81,63 @@ export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) =
         )}
       </div>
 
-      <ul className="max-h-80 overflow-y-auto">
+      <ul className="max-h-80 space-y-0.5 overflow-y-auto px-2 pb-2 scrollbar-slim">
         {visible.map((p) => {
           const isActive = p.id === activePersonaId
           return (
-            <li key={p.id} className="border-b border-gray-100 dark:border-gray-800">
+            <li key={p.id}>
               <button
                 onClick={() => onApply(p)}
-                className={`flex w-full items-start gap-3 px-4 py-3 text-left transition hover:bg-gray-50 dark:hover:bg-gray-800 ${
-                  isActive ? "bg-persona-50 dark:bg-gray-800" : ""
+                className={`group flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-left transition ${
+                  isActive
+                    ? "bg-persona-50 dark:bg-persona-950/40"
+                    : "hover:bg-gray-50 dark:hover:bg-gray-800/70"
                 }`}
               >
                 <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-xl leading-none ${
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg leading-none transition ${
                     isActive
-                      ? "bg-persona-100 ring-1 ring-persona-500 dark:bg-gray-700"
-                      : "bg-gray-100 dark:bg-gray-800"
+                      ? "bg-white shadow-sm ring-1 ring-persona-300 dark:bg-gray-800 dark:ring-persona-700"
+                      : "bg-gray-100 group-hover:bg-white group-hover:shadow-sm dark:bg-gray-800"
                   }`}
                   aria-hidden
                 >
                   {p.avatarEmoji || "🎭"}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-center gap-2">
-                    <span className="truncate text-sm font-semibold text-gray-900 dark:text-gray-100">
+                  <div className="flex items-center gap-1.5">
+                    <span className="truncate text-xs font-semibold text-gray-900 dark:text-gray-100">
                       {p.name}
                     </span>
-                    {isActive && (
-                      <span className="rounded bg-persona-600 px-1.5 py-0.5 text-[10px] font-medium text-white">
-                        Active
-                      </span>
-                    )}
                     {(p.worldInfo?.length ?? 0) > 0 && (
                       <span
-                        className="text-[10px] text-persona-600 dark:text-persona-100"
-                        title="Has world info"
+                        className="text-[10px] opacity-60"
+                        title={`${p.worldInfo!.length} world info entries`}
                       >
                         📖
                       </span>
                     )}
                   </div>
-                  <div className="truncate text-xs text-gray-500 dark:text-gray-400">
-                    {p.personaPrompt.slice(0, 80)}
-                    {p.personaPrompt.length > 80 && "…"}
+                  <div className="truncate text-[11px] text-gray-500 dark:text-gray-400">
+                    {p.personaPrompt.slice(0, 72)}
+                    {p.personaPrompt.length > 72 && "…"}
                   </div>
                 </div>
+                {isActive ? (
+                  <span className="shrink-0 rounded-full bg-persona-600 px-2 py-0.5 text-[10px] font-medium text-white">
+                    Active
+                  </span>
+                ) : (
+                  <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium text-persona-600 opacity-0 transition group-hover:opacity-100 dark:text-persona-300">
+                    Apply →
+                  </span>
+                )}
               </button>
             </li>
           )
         })}
         {visible.length === 0 && (
-          <li className="p-6 text-center text-xs text-gray-400">
+          <li className="px-4 py-8 text-center text-xs text-gray-400">
             No personas match “{query || tagFilter}”.
           </li>
         )}

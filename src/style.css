@@ -5,3 +5,39 @@
 /* Content-script namespace guard.
  * Plasmo scopes CSS to its shadow DOM by default; extra guards live in
  * component-level classNames rather than global overrides. */
+
+@layer base {
+  :host,
+  html {
+    font-family:
+      -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto,
+      "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+@layer utilities {
+  .scrollbar-slim {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(0 0 0 / 0.15) transparent;
+  }
+  .scrollbar-slim::-webkit-scrollbar {
+    width: 6px;
+  }
+  .scrollbar-slim::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  .scrollbar-slim::-webkit-scrollbar-thumb {
+    border-radius: 9999px;
+    background: rgb(0 0 0 / 0.15);
+  }
+  @media (prefers-color-scheme: dark) {
+    .scrollbar-slim {
+      scrollbar-color: rgb(255 255 255 / 0.18) transparent;
+    }
+    .scrollbar-slim::-webkit-scrollbar-thumb {
+      background: rgb(255 255 255 / 0.18);
+    }
+  }
+}

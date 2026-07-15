@@ -7,25 +7,39 @@ interface Props {
   onSelect: (id: string | null) => void
 }
 
+const CheckBadge: FC = () => (
+  <span className="absolute right-1.5 top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-persona-600 text-white shadow-sm">
+    <svg width="9" height="9" viewBox="0 0 10 10" fill="none">
+      <path
+        d="M1.5 5.5L4 8L8.5 2.5"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  </span>
+)
+
 export const BackgroundPicker: FC<Props> = ({ activeBackgroundId, onSelect }) => {
   return (
-    <div className="p-4">
-      <p className="mb-3 text-xs text-gray-500 dark:text-gray-400">
-        Applies behind DeepSeek's chat. Purely visual — doesn't touch what gets sent.
+    <div className="px-4 pb-2 pt-3">
+      <p className="mb-3 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
+        Sets the scene behind the chat. Purely visual — never touches what gets sent.
       </p>
       <div className="grid grid-cols-3 gap-2">
         <button
           onClick={() => onSelect(null)}
-          className={`flex flex-col items-center gap-1 rounded-lg border p-1.5 transition ${
+          className={`group relative overflow-hidden rounded-xl transition ${
             activeBackgroundId === null
-              ? "border-persona-600 bg-persona-50 dark:bg-gray-800"
-              : "border-gray-200 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
+              ? "ring-2 ring-persona-500 ring-offset-2 dark:ring-offset-gray-900"
+              : "hover:scale-[1.03]"
           }`}
         >
-          <div className="flex h-12 w-full items-center justify-center rounded border border-dashed border-gray-300 text-[10px] text-gray-400 dark:border-gray-700">
+          <div className="flex aspect-[4/3] w-full items-center justify-center border border-dashed border-gray-300 bg-gray-50 text-[10px] font-medium text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-500">
             None
           </div>
-          <span className="text-[10px] text-gray-600 dark:text-gray-300">Default</span>
+          {activeBackgroundId === null && <CheckBadge />}
         </button>
 
         {BACKGROUND_PRESETS.map((preset) => {
@@ -34,20 +48,22 @@ export const BackgroundPicker: FC<Props> = ({ activeBackgroundId, onSelect }) =>
             <button
               key={preset.id}
               onClick={() => onSelect(preset.id)}
-              className={`flex flex-col items-center gap-1 rounded-lg border p-1.5 transition ${
+              title={preset.label}
+              className={`group relative overflow-hidden rounded-xl transition ${
                 isActive
-                  ? "border-persona-600 bg-persona-50 dark:bg-gray-800"
-                  : "border-gray-200 hover:bg-gray-50 dark:border-gray-800 dark:hover:bg-gray-800"
+                  ? "ring-2 ring-persona-500 ring-offset-2 dark:ring-offset-gray-900"
+                  : "hover:scale-[1.03]"
               }`}
             >
               <div
-                className="h-12 w-full rounded"
-                style={{ backgroundImage: preset.css }}
+                className="aspect-[4/3] w-full"
+                style={{ backgroundImage: preset.css, backgroundSize: "cover" }}
                 aria-hidden
               />
-              <span className="truncate text-[10px] text-gray-600 dark:text-gray-300">
+              <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-1.5 pb-1 pt-3 text-left text-[9px] font-medium text-white/90">
                 {preset.label}
               </span>
+              {isActive && <CheckBadge />}
             </button>
           )
         })}

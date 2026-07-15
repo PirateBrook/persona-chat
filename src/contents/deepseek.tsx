@@ -89,23 +89,23 @@ export default function DeepSeekOverlay() {
         onClick={() => setOpen((v) => !v)}
       />
 
-      {canEnrich && (
+      {canEnrich && !open && (
         <button
           onClick={handleEnrich}
-          className="fixed bottom-6 right-24 z-[999999] flex items-center gap-1.5 rounded-full bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-lg transition hover:shadow-xl dark:bg-gray-800 dark:text-gray-200"
+          className="fixed bottom-[4.6rem] right-6 z-[999999] flex h-9 items-center gap-1.5 rounded-full border border-gray-200/80 bg-white/95 px-3.5 text-[11px] font-medium text-gray-700 shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200"
         >
           <span aria-hidden>✨</span> Enrich
         </button>
       )}
 
       {pillToast && (
-        <div className="fixed bottom-[4.5rem] right-6 z-[999999] max-w-xs rounded-lg bg-gray-900/90 px-3 py-2 text-xs text-white shadow-lg">
+        <div className="fixed bottom-[7.2rem] right-6 z-[999999] max-w-xs animate-fade-up rounded-xl bg-gray-900/95 px-3.5 py-2.5 text-xs font-medium text-white shadow-lg backdrop-blur dark:bg-white/95 dark:text-gray-900">
           {pillToast}
         </div>
       )}
 
       {open && (
-        <div className="fixed bottom-24 right-6 z-[999998] w-96 max-w-[calc(100vw-3rem)] overflow-hidden rounded-xl border border-gray-200 bg-white shadow-2xl dark:border-gray-800 dark:bg-gray-900">
+        <div className="fixed bottom-[5.2rem] right-6 z-[999998] w-[360px] max-w-[calc(100vw-3rem)] animate-fade-up overflow-hidden rounded-2xl border border-gray-200/80 bg-white text-gray-900 shadow-2xl shadow-gray-900/10 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100">
           <PersonaPanel onClose={() => setOpen(false)} />
         </div>
       )}

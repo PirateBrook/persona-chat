@@ -18,6 +18,11 @@ export interface PersonaCard {
   driftReminder?: string
   worldInfo?: WorldInfoEntry[]
   backgroundId?: string
+  /** Set once a user edits this card via the options page. Distinguishes
+   *  "still the untouched built-in default" from "user customized it", so
+   *  seed content updates can safely refresh the former without clobbering
+   *  the latter. */
+  isCustomized?: boolean
   tags: string[]
   createdAt: number
   updatedAt: number
@@ -31,7 +36,7 @@ export interface AppState {
 }
 
 export const DEFAULT_APP_STATE: AppState = {
-  activeMode: "original",
+  activeMode: "persona",
   activePersonaId: null,
   activeBackgroundId: null,
   panelOpen: false

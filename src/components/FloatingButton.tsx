@@ -14,15 +14,15 @@ export const FloatingButton: FC<Props> = ({ open, activeEmoji, onClick }) => {
   return (
     <button
       onClick={onClick}
-      aria-label={open ? "Close Persona.chat panel" : "Open Persona.chat panel"}
-      className={`fixed bottom-6 right-6 z-[999999] flex h-14 w-14 items-center justify-center rounded-full text-white shadow-lg transition hover:shadow-xl ${
+      aria-label={open ? "Close Persona panel" : "Open Persona panel"}
+      className={`fixed bottom-6 right-6 z-[999999] flex h-12 w-12 items-center justify-center rounded-full shadow-lg shadow-persona-600/25 transition-all duration-200 hover:scale-105 active:scale-95 ${
         hasActive
-          ? "bg-gradient-to-br from-persona-500 to-persona-700 ring-2 ring-persona-100 ring-offset-2"
-          : "bg-persona-600 hover:bg-persona-700"
+          ? "bg-white ring-2 ring-persona-500 dark:bg-gray-800"
+          : "bg-gradient-to-br from-persona-500 to-persona-700 text-white"
       }`}
     >
       {open ? (
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+        <svg width="16" height="16" viewBox="0 0 20 20" fill="none">
           <path
             d="M5 5L15 15M15 5L5 15"
             stroke="currentColor"
@@ -31,14 +31,19 @@ export const FloatingButton: FC<Props> = ({ open, activeEmoji, onClick }) => {
           />
         </svg>
       ) : hasActive ? (
-        <span className="text-2xl leading-none" aria-hidden>
+        <span className="text-xl leading-none" aria-hidden>
           {activeEmoji}
         </span>
       ) : (
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-          <circle cx="9" cy="9" r="3" stroke="currentColor" strokeWidth="2" />
-          <circle cx="15" cy="15" r="3" stroke="currentColor" strokeWidth="2" />
-          <path d="M9 9V15" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path
+            d="M12 3a7 7 0 0 1 7 7c0 2.5-1.3 4.4-3 5.7V19a2 2 0 0 1-2 2h-4a2 2 0 0 1-2-2v-3.3c-1.7-1.3-3-3.2-3-5.7a7 7 0 0 1 7-7Z"
+            stroke="currentColor"
+            strokeWidth="1.8"
+            strokeLinejoin="round"
+          />
+          <circle cx="9.5" cy="10" r="1" fill="currentColor" />
+          <circle cx="14.5" cy="10" r="1" fill="currentColor" />
         </svg>
       )}
     </button>
