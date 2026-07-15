@@ -4,9 +4,10 @@ import "./style.css"
 
 import { BACKGROUND_PRESETS } from "~lib/backgrounds"
 import { useI18n, type MessageKey } from "~lib/i18n"
+import { INPUT_BASE_CLS } from "~lib/styles"
+import { ensureSeeds } from "~seed"
 import {
   deletePersona,
-  ensureSeeds,
   getPersona,
   listPersonas,
   makePersonaId,
@@ -15,11 +16,8 @@ import {
 } from "~storage"
 import type { LanguagePref, PersonaCard, WorldInfoEntry } from "~types"
 
-const INPUT_CLS =
-  "w-full rounded-lg border border-gray-200 bg-gray-50/60 px-3 py-2 text-sm outline-none transition placeholder:text-gray-400 focus:border-persona-400 focus:bg-white focus:ring-2 focus:ring-persona-500/20 dark:border-gray-700 dark:bg-gray-800/80 dark:focus:border-persona-500 dark:focus:bg-gray-800"
-
-const INPUT_CLS_SMALL =
-  "w-full rounded-lg border border-gray-200 bg-gray-50/60 px-2.5 py-1.5 text-xs outline-none transition placeholder:text-gray-400 focus:border-persona-400 focus:bg-white focus:ring-2 focus:ring-persona-500/20 dark:border-gray-700 dark:bg-gray-800/80 dark:focus:border-persona-500 dark:focus:bg-gray-800"
+const INPUT_CLS = `w-full bg-gray-50/60 px-3 py-2 text-sm ${INPUT_BASE_CLS}`
+const INPUT_CLS_SMALL = `w-full bg-gray-50/60 px-2.5 py-1.5 text-xs ${INPUT_BASE_CLS}`
 
 /**
  * Options page is the primary create/edit surface. Content-script panel is
@@ -314,7 +312,7 @@ export default function Options() {
                     onChange={(e) =>
                       setEditing({ ...editing, avatarEmoji: e.target.value })
                     }
-                    className="w-24 rounded-lg border border-gray-200 bg-gray-50/60 px-3 py-2 text-lg outline-none transition focus:border-persona-400 focus:bg-white focus:ring-2 focus:ring-persona-500/20 dark:border-gray-700 dark:bg-gray-800/80 dark:focus:border-persona-500 dark:focus:bg-gray-800"
+                    className={`w-24 bg-gray-50/60 px-3 py-2 text-lg ${INPUT_BASE_CLS}`}
                   />
                 </FormField>
                 <FormField label={t("field.personaPrompt")}>

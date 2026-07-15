@@ -1,7 +1,8 @@
 import { useMemo, useState, type FC } from "react"
 
-import { getMessages, useI18n } from "../lib/i18n"
-import type { Locale, PersonaCard } from "../types"
+import { useI18n } from "../lib/i18n"
+import { INPUT_BASE_CLS } from "../lib/styles"
+import type { PersonaCard } from "../types"
 
 interface Props {
   personas: PersonaCard[]
@@ -9,16 +10,8 @@ interface Props {
   onApply: (persona: PersonaCard) => void
 }
 
-/** Tags are stored as stable English keys (filtering/search logic depends on
- *  them); only the displayed label is localized. Unknown/user-created tags
- *  fall back to the raw key rather than crashing on a missing dict entry. */
-function tagLabel(locale: Locale, tag: string): string {
-  const dict = getMessages(locale) as Record<string, string>
-  return dict[`tag.${tag}`] ?? tag
-}
-
 export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) => {
-  const { t, tp, locale } = useI18n()
+  const { t, tp, tOrFallback } = useI18n()
   const [query, setQuery] = useState("")
   const [tagFilter, setTagFilter] = useState<string | null>(null)
 
@@ -65,7 +58,7 @@ export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) =
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           placeholder={t("list.searchPlaceholder")}
-          className="w-full rounded-lg border border-gray-200 bg-gray-50/80 px-3 py-2 text-xs text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-persona-400 focus:bg-white focus:ring-2 focus:ring-persona-500/20 dark:border-gray-700 dark:bg-gray-800/80 dark:text-gray-100 dark:focus:border-persona-500 dark:focus:bg-gray-800"
+          className={`w-full bg-gray-50/80 px-3 py-2 text-xs text-gray-900 dark:text-gray-100 ${INPUT_BASE_CLS}`}
         />
         {allTags.length > 0 && (
           <div className="flex flex-wrap gap-1">
@@ -81,7 +74,7 @@ export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) =
                       : "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
                   }`}
                 >
-                  {tagLabel(locale, tag)}
+                  {tOrFallback(`tag.${tag}`, tag)}
                 </button>
               )
             })}

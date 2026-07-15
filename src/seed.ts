@@ -1,3 +1,4 @@
+import { getPersonaMap, listPersonas, setPersonaMap } from "./storage"
 import type { Locale, PersonaCard, WorldInfoEntry } from "./types"
 
 /**
@@ -21,8 +22,7 @@ import type { Locale, PersonaCard, WorldInfoEntry } from "./types"
  * translations with register tuning, but the wuxia narrator (was a JRPG
  * narrator) and the "2003 diary" (was "1997 Diary") are cultural redesigns —
  * same archetype/behavioral constraint, different genre skin so the
- * pop-culture references actually land for a Chinese-speaking user. See
- * .claude-i18n-design.md for the full design rationale.
+ * pop-culture references actually land for a Chinese-speaking user.
  *
  * worldInfo keys are localized per-locale (they substring-match the user's
  * own draft text, so English keys would never fire for a zh user); each
@@ -475,3 +475,32 @@ export const SEED_PERSONAS: SeedPersona[] = [
     }
   }
 ]
+
+/**
+ * Installs missing built-in personas and refreshes already-installed ones
+ * that the user hasn't customized (isCustomized), expanding seed content to
+ * `locale`. Called on bootstrap and again whenever the resolved locale
+ * changes, so flipping the language pref re-expands non-customized seeds in
+ * place — same stable ids, so activePersonaId/worldInfo enrich state/
+ * backgroundId never get orphaned by the switch. Cards the user edited via
+ * the options page are skipped entirely, preserving their content. Batches
+ * to a single read + at most one write regardless of how many seeds need
+ * installing/refreshing, via storage.ts's generic map access rather than a
+ * per-card upsertPersona loop.
+ */
+export async function ensureSeeds(locale: Locale): Promise<PersonaCard[]> {
+  const map = await getPersonaMap()
+  const now = Date.now()
+  let changed = false
+
+  for (const seed of SEED_PERSONAS) {
+    const current = map[seed.id]
+    if (current?.isCustomized) continue
+    const expanded = expandSeed(seed, locale, now)
+    map[seed.id] = current ? { ...expanded, createdAt: current.createdAt } : expanded
+    changed = true
+  }
+
+  if (changed) await setPersonaMap(map)
+  return listPersonas()
+}

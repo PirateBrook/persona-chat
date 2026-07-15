@@ -1,8 +1,8 @@
 import { useEffect, useRef } from "react"
 
-import type { PersonaCard } from "../types"
+import type { Locale, PersonaCard } from "../types"
 import { getActiveAdapter } from "./adapters"
-import type { I18n } from "./i18n"
+import { translate, translatePlural } from "./i18n"
 import { composeEnrichedMessage, matchWorldInfo } from "./world-info"
 
 const DRIFT_INTERVAL = 6
@@ -73,20 +73,25 @@ export function usePersonaEnrich(activePersona: PersonaCard | null) {
   return { enrich }
 }
 
-export function describeEnrichOutcome(
-  outcome: EnrichOutcome,
-  { t, tp }: Pick<I18n, "t" | "tp">
-): string {
+/**
+ * Takes a raw `Locale` and calls `translate`/`translatePlural` directly
+ * (matching persona-message.ts's convention) rather than a hook-derived
+ * `t`/`tp` pair — this is a plain function usable from anywhere a locale is
+ * known, not just from within a component that already called useI18n().
+ */
+export function describeEnrichOutcome(outcome: EnrichOutcome, locale: Locale): string {
   if (!outcome.ok) {
-    return outcome.reason === "inject-failed" ? t("enrich.failed") : t("enrich.nothingYet")
+    return outcome.reason === "inject-failed"
+      ? translate(locale, "enrich.failed")
+      : translate(locale, "enrich.nothingYet")
   }
   if (outcome.addedLoreCount === 0 && !outcome.addedDrift) {
-    return t("enrich.nothingNew")
+    return translate(locale, "enrich.nothingNew")
   }
   const parts: string[] = []
   if (outcome.addedLoreCount > 0) {
-    parts.push(tp("enrich.loreNote", outcome.addedLoreCount))
+    parts.push(translatePlural(locale, "enrich.loreNote", outcome.addedLoreCount))
   }
-  if (outcome.addedDrift) parts.push(t("enrich.reminder"))
-  return t("enrich.added", { parts: parts.join(" + ") })
+  if (outcome.addedDrift) parts.push(translate(locale, "enrich.reminder"))
+  return translate(locale, "enrich.added", { parts: parts.join(" + ") })
 }

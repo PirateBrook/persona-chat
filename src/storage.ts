@@ -1,6 +1,5 @@
 import { safeChromeCall } from "./lib/extension-context"
-import { expandSeed, SEED_PERSONAS } from "./seed"
-import type { AppState, Locale, PersonaCard } from "./types"
+import type { AppState, PersonaCard } from "./types"
 import { DEFAULT_APP_STATE } from "./types"
 
 /**
@@ -68,34 +67,16 @@ export async function setAppState(patch: Partial<AppState>): Promise<AppState> {
 }
 
 /**
- * Installs missing built-in personas and refreshes already-installed ones
- * that the user hasn't customized (isCustomized), expanding seed content to
- * `locale`. Called on bootstrap and again whenever the resolved locale
- * changes, so flipping the language pref re-expands non-customized seeds in
- * place — same stable ids, so activePersonaId/worldInfo enrich state/
- * backgroundId never get orphaned by the switch. Cards the user edited via
- * the options page are skipped entirely, preserving their content.
+ * Generic map access for callers that need to batch several persona changes
+ * into a single read + write (e.g. seed.ts's ensureSeeds) instead of paying
+ * a full get+set per card via upsertPersona in a loop.
  */
-export async function ensureSeeds(locale: Locale): Promise<PersonaCard[]> {
-  const existing = await listPersonas()
-  const existingById = new Map(existing.map((p) => [p.id, p]))
-  const now = Date.now()
+export async function getPersonaMap(): Promise<Record<string, PersonaCard>> {
+  return getRaw<Record<string, PersonaCard>>(KEY_PERSONAS, {})
+}
 
-  const toInstall = SEED_PERSONAS.filter((seed) => {
-    const current = existingById.get(seed.id)
-    return !current || !current.isCustomized
-  }).map((seed) => {
-    const current = existingById.get(seed.id)
-    const expanded = expandSeed(seed, locale, now)
-    return current ? { ...expanded, createdAt: current.createdAt } : expanded
-  })
-
-  if (toInstall.length === 0) return existing
-
-  for (const card of toInstall) {
-    await upsertPersona(card)
-  }
-  return listPersonas()
+export async function setPersonaMap(map: Record<string, PersonaCard>): Promise<void> {
+  await setRaw(KEY_PERSONAS, map)
 }
 
 export function makePersonaId(): string {

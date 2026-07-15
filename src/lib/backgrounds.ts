@@ -77,13 +77,15 @@ export const BACKGROUND_PRESETS: BackgroundPreset[] = [
     id: "bg_midnight_terminal",
     category: "work",
     // Phosphor glow + scanlines + depth falloff — the flagship "terminal" mood.
-    cssDark: [
+    cssDark: variant(
       "repeating-linear-gradient(0deg, rgba(134,239,172,0.02) 0 1px, transparent 1px 3px)",
-      "radial-gradient(120% 100% at 50% 40%, transparent 60%, rgba(2,6,12,0.5) 100%)",
-      "radial-gradient(70% 55% at 78% 0%, rgba(20,83,45,0.35) 0%, rgba(20,83,45,0.12) 45%, transparent 70%)",
-      "radial-gradient(50% 60% at 8% 100%, rgba(5,150,105,0.14) 0%, transparent 60%)",
+      [
+        "radial-gradient(120% 100% at 50% 40%, transparent 60%, rgba(2,6,12,0.5) 100%)",
+        "radial-gradient(70% 55% at 78% 0%, rgba(20,83,45,0.35) 0%, rgba(20,83,45,0.12) 45%, transparent 70%)",
+        "radial-gradient(50% 60% at 8% 100%, rgba(5,150,105,0.14) 0%, transparent 60%)"
+      ],
       base("#070b14", "#101827")
-    ].join(", "),
+    ),
     cssLight: variant(
       GRAIN_LIGHT,
       [accent(80, 0, 22, 101, 52, 0.1), accent(10, 100, 5, 150, 105, 0.08)],
@@ -129,15 +131,17 @@ export const BACKGROUND_PRESETS: BackgroundPreset[] = [
     id: "bg_late_night_bar",
     category: "companion",
     // Conic lamp cone + bokeh dots + floor bounce.
-    cssDark: [
+    cssDark: variant(
       "repeating-linear-gradient(115deg, rgba(255,255,255,0.008) 0 1px, transparent 1px 4px)",
-      "radial-gradient(3.5% 5% at 82% 30%, rgba(251,146,60,0.14) 0%, rgba(251,146,60,0.05) 60%, transparent 100%)",
-      "radial-gradient(2.5% 4% at 68% 18%, rgba(245,158,11,0.10) 0%, transparent 100%)",
-      "radial-gradient(3% 4.5% at 90% 48%, rgba(217,119,6,0.08) 0%, transparent 100%)",
-      "conic-gradient(from 195deg at 78% -5%, transparent 0deg, rgba(180,83,9,0.28) 18deg, rgba(180,83,9,0.10) 42deg, transparent 60deg)",
-      "radial-gradient(60% 30% at 25% 100%, rgba(124,45,18,0.25) 0%, transparent 65%)",
+      [
+        "radial-gradient(3.5% 5% at 82% 30%, rgba(251,146,60,0.14) 0%, rgba(251,146,60,0.05) 60%, transparent 100%)",
+        "radial-gradient(2.5% 4% at 68% 18%, rgba(245,158,11,0.10) 0%, transparent 100%)",
+        "radial-gradient(3% 4.5% at 90% 48%, rgba(217,119,6,0.08) 0%, transparent 100%)",
+        "conic-gradient(from 195deg at 78% -5%, transparent 0deg, rgba(180,83,9,0.28) 18deg, rgba(180,83,9,0.10) 42deg, transparent 60deg)",
+        "radial-gradient(60% 30% at 25% 100%, rgba(124,45,18,0.25) 0%, transparent 65%)"
+      ],
       base("#150d0a", "#26170f")
-    ].join(", "),
+    ),
     cssLight: variant(
       GRAIN_LIGHT,
       [accent(75, 20, 217, 119, 6, 0.16), accent(20, 90, 154, 52, 18, 0.1)],
@@ -237,24 +241,26 @@ export const BACKGROUND_PRESETS: BackgroundPreset[] = [
     category: "philosophy",
     // Night ink — mist blooms lighter than the paper, the flagship fix for
     // the "flat murky gray" bug (the old single gradient was authored light
-    // and got crushed by a global 50% dark scrim; see .claude-bg-optimization-plan.md).
-    cssDark: [
-      "repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 3px)",
-      "repeating-linear-gradient(90deg, rgba(255,255,255,0.009) 0 1px, transparent 1px 4px)",
-      "radial-gradient(60% 45% at 85% 10%, rgba(113,113,122,0.16) 0%, rgba(113,113,122,0.06) 45%, transparent 72%)",
-      "radial-gradient(50% 38% at 12% 88%, rgba(82,82,91,0.14) 0%, transparent 68%)",
+    // and got crushed by a global 50% dark scrim).
+    cssDark: variant(
+      GRAIN_DARK,
+      [
+        "radial-gradient(60% 45% at 85% 10%, rgba(113,113,122,0.16) 0%, rgba(113,113,122,0.06) 45%, transparent 72%)",
+        "radial-gradient(50% 38% at 12% 88%, rgba(82,82,91,0.14) 0%, transparent 68%)"
+      ],
       base("#101013", "#1e1e24")
-    ].join(", "),
+    ),
     // Rice paper + ink bleed.
-    cssLight: [
-      "repeating-linear-gradient(0deg, rgba(0,0,0,0.016) 0 1px, transparent 1px 3px)",
-      "repeating-linear-gradient(90deg, rgba(0,0,0,0.012) 0 1px, transparent 1px 4px)",
-      "linear-gradient(178deg, transparent 58%, rgba(212,212,216,0.5) 68%, transparent 80%)",
-      "radial-gradient(60% 45% at 88% 8%, rgba(39,39,42,0.38) 0%, rgba(39,39,42,0.22) 34%, rgba(39,39,42,0.08) 58%, transparent 75%)",
-      "radial-gradient(45% 35% at 70% 22%, rgba(63,63,70,0.2) 0%, rgba(63,63,70,0.07) 45%, transparent 70%)",
-      "radial-gradient(55% 40% at 6% 96%, rgba(24,24,27,0.3) 0%, rgba(24,24,27,0.1) 45%, transparent 72%)",
+    cssLight: variant(
+      GRAIN_LIGHT,
+      [
+        "linear-gradient(178deg, transparent 58%, rgba(212,212,216,0.5) 68%, transparent 80%)",
+        "radial-gradient(60% 45% at 88% 8%, rgba(39,39,42,0.38) 0%, rgba(39,39,42,0.22) 34%, rgba(39,39,42,0.08) 58%, transparent 75%)",
+        "radial-gradient(45% 35% at 70% 22%, rgba(63,63,70,0.2) 0%, rgba(63,63,70,0.07) 45%, transparent 70%)",
+        "radial-gradient(55% 40% at 6% 96%, rgba(24,24,27,0.3) 0%, rgba(24,24,27,0.1) 45%, transparent 72%)"
+      ],
       base("#f6f5f1", "#d6d5d0")
-    ].join(", "),
+    ),
     bandAlpha: 0.35
   }
 ]

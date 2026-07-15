@@ -6,6 +6,7 @@ import { FloatingButton } from "~components/FloatingButton"
 import { PersonaPanel } from "~components/PersonaPanel"
 import { applyBackground } from "~lib/backgrounds"
 import { useI18n } from "~lib/i18n"
+import { subscribeStorageChanged } from "~lib/storage-events"
 import { describeEnrichOutcome, usePersonaEnrich } from "~lib/use-persona-enrich"
 import { getAppState, getPersona } from "~storage"
 import type { PersonaCard } from "~types"
@@ -32,7 +33,7 @@ export const getStyle: PlasmoGetStyle = () => {
  * matching without requiring the panel to be open.
  */
 export default function DeepSeekOverlay() {
-  const { t, tp } = useI18n()
+  const { t, locale } = useI18n()
   const [open, setOpen] = useState(false)
   const [activePersona, setActivePersona] = useState<PersonaCard | null>(null)
   const [pillToast, setPillToast] = useState<string | null>(null)
@@ -41,26 +42,10 @@ export default function DeepSeekOverlay() {
   useEffect(() => {
     void refresh()
 
-    function onStorageChanged(
-      changes: Record<string, chrome.storage.StorageChange>,
-      area: string
-    ) {
+    return subscribeStorageChanged((changes, area) => {
       if (area !== "local") return
       if (changes.appState || changes.personas) void refresh()
-    }
-
-    try {
-      chrome.storage.onChanged.addListener(onStorageChanged)
-    } catch {
-      // Extension context already gone; PersonaPanel's own guard handles the banner.
-    }
-    return () => {
-      try {
-        chrome.storage.onChanged.removeListener(onStorageChanged)
-      } catch {
-        // no-op
-      }
-    }
+    })
   }, [])
 
   async function refresh() {
@@ -76,7 +61,7 @@ export default function DeepSeekOverlay() {
 
   async function handleEnrich() {
     const outcome = await enrich()
-    setPillToast(describeEnrichOutcome(outcome, { t, tp }))
+    setPillToast(describeEnrichOutcome(outcome, locale))
     setTimeout(() => setPillToast(null), 3000)
   }
 

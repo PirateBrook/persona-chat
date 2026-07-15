@@ -1,4 +1,4 @@
-import type { FC } from "react"
+import { useState, type FC } from "react"
 
 import { BACKGROUND_PRESETS, detectTheme, getSwatchCss } from "../lib/backgrounds"
 import { useI18n, type MessageKey } from "../lib/i18n"
@@ -24,9 +24,10 @@ const CheckBadge: FC = () => (
 
 export const BackgroundPicker: FC<Props> = ({ activeBackgroundId, onSelect }) => {
   const { t } = useI18n()
-  // Read once per render — cheap, and swatches only need to roughly track
-  // DeepSeek's theme, not live-update mid-toggle while the picker is open.
-  const theme = detectTheme()
+  // Computed once on mount, not on every render — swatches only need to
+  // roughly track DeepSeek's theme, not live-update mid-toggle while the
+  // picker is open.
+  const [theme] = useState(detectTheme)
 
   return (
     <div className="px-4 pb-2 pt-3">
