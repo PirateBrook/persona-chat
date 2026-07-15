@@ -33,26 +33,42 @@ async function setRaw<T>(key: string, value: T): Promise<void> {
   }, null)
 }
 
+/**
+ * Generic map access — the one place that knows the persona map lives under
+ * KEY_PERSONAS. Every persona CRUD function below reads/writes through
+ * these two rather than repeating `getRaw(KEY_PERSONAS, {})` inline, and
+ * callers that need to batch several changes into a single read + write
+ * (e.g. seed.ts's ensureSeeds) can use them directly instead of paying a
+ * full get+set per card via upsertPersona in a loop.
+ */
+export async function getPersonaMap(): Promise<Record<string, PersonaCard>> {
+  return getRaw<Record<string, PersonaCard>>(KEY_PERSONAS, {})
+}
+
+export async function setPersonaMap(map: Record<string, PersonaCard>): Promise<void> {
+  await setRaw(KEY_PERSONAS, map)
+}
+
 export async function listPersonas(): Promise<PersonaCard[]> {
-  const map = await getRaw<Record<string, PersonaCard>>(KEY_PERSONAS, {})
+  const map = await getPersonaMap()
   return Object.values(map).sort((a, b) => b.updatedAt - a.updatedAt)
 }
 
 export async function getPersona(id: string): Promise<PersonaCard | null> {
-  const map = await getRaw<Record<string, PersonaCard>>(KEY_PERSONAS, {})
+  const map = await getPersonaMap()
   return map[id] ?? null
 }
 
 export async function upsertPersona(card: PersonaCard): Promise<void> {
-  const map = await getRaw<Record<string, PersonaCard>>(KEY_PERSONAS, {})
+  const map = await getPersonaMap()
   map[card.id] = { ...card, updatedAt: Date.now() }
-  await setRaw(KEY_PERSONAS, map)
+  await setPersonaMap(map)
 }
 
 export async function deletePersona(id: string): Promise<void> {
-  const map = await getRaw<Record<string, PersonaCard>>(KEY_PERSONAS, {})
+  const map = await getPersonaMap()
   delete map[id]
-  await setRaw(KEY_PERSONAS, map)
+  await setPersonaMap(map)
 }
 
 export async function getAppState(): Promise<AppState> {
@@ -64,19 +80,6 @@ export async function setAppState(patch: Partial<AppState>): Promise<AppState> {
   const next = { ...cur, ...patch }
   await setRaw(KEY_APP_STATE, next)
   return next
-}
-
-/**
- * Generic map access for callers that need to batch several persona changes
- * into a single read + write (e.g. seed.ts's ensureSeeds) instead of paying
- * a full get+set per card via upsertPersona in a loop.
- */
-export async function getPersonaMap(): Promise<Record<string, PersonaCard>> {
-  return getRaw<Record<string, PersonaCard>>(KEY_PERSONAS, {})
-}
-
-export async function setPersonaMap(map: Record<string, PersonaCard>): Promise<void> {
-  await setRaw(KEY_PERSONAS, map)
 }
 
 export function makePersonaId(): string {

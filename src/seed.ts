@@ -1,4 +1,4 @@
-import { getPersonaMap, listPersonas, setPersonaMap } from "./storage"
+import { getPersonaMap, setPersonaMap } from "./storage"
 import type { Locale, PersonaCard, WorldInfoEntry } from "./types"
 
 /**
@@ -502,5 +502,7 @@ export async function ensureSeeds(locale: Locale): Promise<PersonaCard[]> {
   }
 
   if (changed) await setPersonaMap(map)
-  return listPersonas()
+  // Sort from the in-memory map (same ordering listPersonas uses) instead of
+  // re-reading storage — map already holds the exact post-write state.
+  return Object.values(map).sort((a, b) => b.updatedAt - a.updatedAt)
 }

@@ -69,10 +69,6 @@ export interface I18n {
   pref: LanguagePref
   t: (key: MessageKey, params?: Record<string, string | number>) => string
   tp: (baseKey: string, count: number, params?: Record<string, string | number>) => string
-  /** Escape hatch for dynamic/untyped keys (e.g. localizing a user-created
-   *  tag string) that can't go through `t`'s `MessageKey` typing — falls
-   *  back to the raw input when no matching catalog entry exists. */
-  tOrFallback: (key: string, fallback: string) => string
   setPref: (pref: LanguagePref) => Promise<void>
 }
 
@@ -119,10 +115,6 @@ export function useI18n(): I18n {
       translatePlural(locale, baseKey, count, params),
     [locale]
   )
-  const tOrFallback = useCallback(
-    (key: string, fallback: string) => (DICTS[locale] as Record<string, string>)[key] ?? fallback,
-    [locale]
-  )
 
   const setPref = useCallback(async (next: LanguagePref) => {
     await safeChromeCall(async () => {
@@ -134,5 +126,5 @@ export function useI18n(): I18n {
     setPrefState(next)
   }, [])
 
-  return { locale, pref, t, tp, tOrFallback, setPref }
+  return { locale, pref, t, tp, setPref }
 }

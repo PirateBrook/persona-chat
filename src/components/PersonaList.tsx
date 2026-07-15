@@ -1,6 +1,7 @@
 import { useMemo, useState, type FC } from "react"
 
 import { useI18n } from "../lib/i18n"
+import { translateTag } from "../lib/i18n/tags"
 import { INPUT_BASE_CLS } from "../lib/styles"
 import type { PersonaCard } from "../types"
 
@@ -11,7 +12,7 @@ interface Props {
 }
 
 export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) => {
-  const { t, tp, tOrFallback } = useI18n()
+  const { t, tp, locale } = useI18n()
   const [query, setQuery] = useState("")
   const [tagFilter, setTagFilter] = useState<string | null>(null)
 
@@ -74,7 +75,7 @@ export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) =
                       : "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
                   }`}
                 >
-                  {tOrFallback(`tag.${tag}`, tag)}
+                  {translateTag(locale, tag) ?? tag}
                 </button>
               )
             })}
