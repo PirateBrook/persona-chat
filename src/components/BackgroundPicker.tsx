@@ -1,6 +1,6 @@
 import type { FC } from "react"
 
-import { BACKGROUND_PRESETS } from "../lib/backgrounds"
+import { BACKGROUND_PRESETS, detectTheme, getSwatchCss } from "../lib/backgrounds"
 import { useI18n, type MessageKey } from "../lib/i18n"
 
 interface Props {
@@ -24,6 +24,9 @@ const CheckBadge: FC = () => (
 
 export const BackgroundPicker: FC<Props> = ({ activeBackgroundId, onSelect }) => {
   const { t } = useI18n()
+  // Read once per render — cheap, and swatches only need to roughly track
+  // DeepSeek's theme, not live-update mid-toggle while the picker is open.
+  const theme = detectTheme()
 
   return (
     <div className="px-4 pb-2 pt-3">
@@ -61,7 +64,7 @@ export const BackgroundPicker: FC<Props> = ({ activeBackgroundId, onSelect }) =>
             >
               <div
                 className="aspect-[4/3] w-full"
-                style={{ backgroundImage: preset.css, backgroundSize: "cover" }}
+                style={{ backgroundImage: getSwatchCss(preset, theme) }}
                 aria-hidden
               />
               <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-1.5 pb-1 pt-3 text-left text-[9px] font-medium text-white/90">

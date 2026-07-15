@@ -1,94 +1,261 @@
 export interface BackgroundPreset {
   id: string
-  label: string
   category: string
-  /** Value for the CSS `background-image` shorthand. Layered radial +
-   *  linear gradients (mesh-gradient style) — no bundled photo assets, so
-   *  there's no licensing question and no binary weight in the repo. */
-  css: string
+  /** Full layered `background-image` stack, authored inside a hard
+   *  luminance band so it never gets murky at any composited point:
+   *  dark ≤ 0.086 relative luminance (≥7:1 vs light assistant text),
+   *  light ≥ 0.451 (≥7:1 vs dark assistant text). No global scrim can
+   *  rescue a preset authored at the wrong polarity, so each theme gets
+   *  its own from-scratch stack rather than one gradient + an overlay. */
+  cssDark: string
+  cssLight: string
+  /** Reading-band scrim strength (see readingBand()). Default 0.35;
+   *  presets with saturated accents near center get a stronger band
+   *  (0.40–0.45) so the text zone feels equally calm across all presets. */
+  bandAlpha?: number
 }
+
+const GRAIN_DARK =
+  "repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(255,255,255,0.009) 0 1px, transparent 1px 4px)"
+const GRAIN_LIGHT =
+  "repeating-linear-gradient(0deg, rgba(0,0,0,0.016) 0 1px, transparent 1px 3px), repeating-linear-gradient(90deg, rgba(0,0,0,0.012) 0 1px, transparent 1px 4px)"
+
+/** Three-stop feathering so blooms have a soft bleed edge instead of a
+ *  uniform fade — reads as an intentional ink/light bloom, not a flat CSS
+ *  radial. */
+function accent(x: number, y: number, r: number, g: number, b: number, alpha: number): string {
+  const dim = Math.round(alpha * 40) / 100
+  return `radial-gradient(55% 42% at ${x}% ${y}%, rgba(${r},${g},${b},${alpha}) 0%, rgba(${r},${g},${b},${dim}) 45%, transparent 72%)`
+}
+
+function base(from: string, to: string): string {
+  return `linear-gradient(165deg, ${from} 0%, ${to} 100%)`
+}
+
+function variant(grain: string, layers: string[], baseLayer: string): string {
+  return [grain, ...layers, baseLayer].join(", ")
+}
+
+const MARBLE_VEINS_DARK =
+  "repeating-linear-gradient(105deg, rgba(255,255,255,0.03) 0 2px, transparent 2px 14px), repeating-linear-gradient(100deg, rgba(255,255,255,0.02) 0 1px, transparent 1px 23px)"
+const MARBLE_VEINS_LIGHT =
+  "repeating-linear-gradient(105deg, rgba(148,155,168,0.05) 0 2px, transparent 2px 14px), repeating-linear-gradient(100deg, rgba(148,155,168,0.03) 0 1px, transparent 1px 23px)"
 
 export const BACKGROUND_PRESETS: BackgroundPreset[] = [
   // ---- work ----
   {
     id: "bg_slate_focus",
-    label: "Slate Focus",
     category: "work",
-    css: "radial-gradient(at 0% 0%, #334155 0%, transparent 55%), radial-gradient(at 100% 100%, #1e293b 0%, transparent 55%), linear-gradient(160deg, #0f172a, #1e293b)"
+    cssDark: variant(
+      GRAIN_DARK,
+      [accent(0, 0, 51, 65, 85, 0.8), accent(100, 100, 30, 41, 59, 0.9)],
+      base("#0f172a", "#1e293b")
+    ),
+    cssLight: variant(
+      GRAIN_LIGHT,
+      [accent(0, 0, 148, 163, 184, 0.35), accent(100, 100, 100, 116, 139, 0.22)],
+      base("#e8edf4", "#ccd5e0")
+    ),
+    bandAlpha: 0.35
   },
   {
     id: "bg_paper_desk",
-    label: "Paper Desk",
     category: "work",
-    css: "radial-gradient(at 20% 10%, #f5f0e6 0%, transparent 60%), radial-gradient(at 90% 90%, #d6cfbf 0%, transparent 55%), linear-gradient(160deg, #ece7db, #d8d2c2)"
+    cssDark: variant(
+      GRAIN_DARK,
+      [accent(20, 10, 168, 148, 110, 0.1), accent(90, 90, 120, 105, 80, 0.14)],
+      base("#1b1712", "#262019")
+    ),
+    cssLight: variant(
+      GRAIN_LIGHT,
+      [accent(20, 10, 245, 240, 230, 0.9), accent(90, 90, 198, 188, 166, 0.5)],
+      base("#f0ebdf", "#dad3c3")
+    ),
+    bandAlpha: 0.35
   },
   {
     id: "bg_midnight_terminal",
-    label: "Midnight Terminal",
     category: "work",
-    css: "radial-gradient(at 80% 0%, #14532d33 0%, transparent 50%), radial-gradient(at 10% 100%, #05966922 0%, transparent 50%), linear-gradient(170deg, #0a0f1c, #111827)"
+    // Phosphor glow + scanlines + depth falloff — the flagship "terminal" mood.
+    cssDark: [
+      "repeating-linear-gradient(0deg, rgba(134,239,172,0.02) 0 1px, transparent 1px 3px)",
+      "radial-gradient(120% 100% at 50% 40%, transparent 60%, rgba(2,6,12,0.5) 100%)",
+      "radial-gradient(70% 55% at 78% 0%, rgba(20,83,45,0.35) 0%, rgba(20,83,45,0.12) 45%, transparent 70%)",
+      "radial-gradient(50% 60% at 8% 100%, rgba(5,150,105,0.14) 0%, transparent 60%)",
+      base("#070b14", "#101827")
+    ].join(", "),
+    cssLight: variant(
+      GRAIN_LIGHT,
+      [accent(80, 0, 22, 101, 52, 0.1), accent(10, 100, 5, 150, 105, 0.08)],
+      base("#eaf0ea", "#d3ddd3")
+    ),
+    bandAlpha: 0.35
   },
 
   // ---- fun ----
   {
     id: "bg_sunset_pop",
-    label: "Sunset Pop",
     category: "fun",
-    css: "radial-gradient(at 10% 20%, #fb923c66 0%, transparent 55%), radial-gradient(at 90% 80%, #ec489966 0%, transparent 55%), linear-gradient(160deg, #7c2d12, #9d174d)"
+    cssDark: variant(
+      GRAIN_DARK,
+      [accent(10, 20, 251, 146, 60, 0.2), accent(90, 80, 236, 72, 153, 0.2)],
+      base("#4a1a0b", "#6b1038")
+    ),
+    cssLight: variant(
+      GRAIN_LIGHT,
+      [accent(10, 20, 251, 146, 60, 0.35), accent(90, 80, 236, 72, 153, 0.28)],
+      base("#ffe8d9", "#fbd5e5")
+    ),
+    bandAlpha: 0.45
   },
   {
     id: "bg_candy",
-    label: "Candy",
     category: "fun",
-    css: "radial-gradient(at 15% 15%, #f9a8d4aa 0%, transparent 55%), radial-gradient(at 85% 85%, #a78bfaaa 0%, transparent 55%), linear-gradient(160deg, #fdf2f8, #ede9fe)"
+    cssDark: variant(
+      GRAIN_DARK,
+      [accent(15, 15, 244, 114, 182, 0.14), accent(85, 85, 139, 92, 246, 0.14)],
+      base("#241222", "#1c1730")
+    ),
+    cssLight: variant(
+      GRAIN_LIGHT,
+      [accent(15, 15, 249, 168, 212, 0.55), accent(85, 85, 167, 139, 250, 0.45)],
+      base("#fdf2f8", "#ece8fd")
+    ),
+    bandAlpha: 0.4
   },
 
   // ---- companion ----
   {
     id: "bg_late_night_bar",
-    label: "Late Night Bar",
     category: "companion",
-    css: "radial-gradient(at 75% 20%, #b4530944 0%, transparent 50%), radial-gradient(at 20% 90%, #7c2d1233 0%, transparent 55%), linear-gradient(170deg, #1c1210, #2c1810)"
+    // Conic lamp cone + bokeh dots + floor bounce.
+    cssDark: [
+      "repeating-linear-gradient(115deg, rgba(255,255,255,0.008) 0 1px, transparent 1px 4px)",
+      "radial-gradient(3.5% 5% at 82% 30%, rgba(251,146,60,0.14) 0%, rgba(251,146,60,0.05) 60%, transparent 100%)",
+      "radial-gradient(2.5% 4% at 68% 18%, rgba(245,158,11,0.10) 0%, transparent 100%)",
+      "radial-gradient(3% 4.5% at 90% 48%, rgba(217,119,6,0.08) 0%, transparent 100%)",
+      "conic-gradient(from 195deg at 78% -5%, transparent 0deg, rgba(180,83,9,0.28) 18deg, rgba(180,83,9,0.10) 42deg, transparent 60deg)",
+      "radial-gradient(60% 30% at 25% 100%, rgba(124,45,18,0.25) 0%, transparent 65%)",
+      base("#150d0a", "#26170f")
+    ].join(", "),
+    cssLight: variant(
+      GRAIN_LIGHT,
+      [accent(75, 20, 217, 119, 6, 0.16), accent(20, 90, 154, 52, 18, 0.1)],
+      base("#f6ede2", "#e9d9c6")
+    ),
+    bandAlpha: 0.35
   },
   {
     id: "bg_warm_lamp",
-    label: "Warm Lamp",
     category: "companion",
-    css: "radial-gradient(at 50% 0%, #f59e0b55 0%, transparent 60%), radial-gradient(at 90% 100%, #92400e44 0%, transparent 50%), linear-gradient(170deg, #451a03, #78350f)"
+    cssDark: variant(
+      GRAIN_DARK,
+      [accent(50, 0, 245, 158, 11, 0.22), accent(90, 100, 146, 64, 14, 0.2)],
+      base("#2e1503", "#4a2408")
+    ),
+    cssLight: variant(
+      GRAIN_LIGHT,
+      [accent(50, 0, 245, 158, 11, 0.3), accent(90, 100, 180, 83, 9, 0.14)],
+      base("#fdf3e0", "#f3ddb8")
+    ),
+    bandAlpha: 0.45
   },
   {
     id: "bg_diary_pastel",
-    label: "Diary Pastel",
     category: "companion",
-    css: "radial-gradient(at 20% 20%, #fde68aa8 0%, transparent 55%), radial-gradient(at 85% 80%, #fca5a5a8 0%, transparent 55%), linear-gradient(160deg, #fffbeb, #fef2f2)"
+    cssDark: variant(
+      GRAIN_DARK,
+      [accent(20, 20, 217, 180, 80, 0.1), accent(85, 80, 220, 120, 120, 0.1)],
+      base("#262019", "#2a1d1f")
+    ),
+    cssLight: variant(
+      GRAIN_LIGHT,
+      [accent(20, 20, 253, 230, 138, 0.6), accent(85, 80, 252, 165, 165, 0.55)],
+      base("#fffbeb", "#fdeeee")
+    ),
+    bandAlpha: 0.35
   },
 
   // ---- roleplay ----
   {
     id: "bg_retro_quest",
-    label: "Retro Quest",
     category: "roleplay",
-    css: "radial-gradient(at 80% 10%, #6d28d955 0%, transparent 55%), radial-gradient(at 10% 90%, #4c1d9544 0%, transparent 55%), linear-gradient(170deg, #12102b, #1e1b4b)"
+    cssDark: variant(
+      GRAIN_DARK,
+      [accent(80, 10, 109, 40, 217, 0.25), accent(10, 90, 76, 29, 149, 0.25)],
+      base("#12102b", "#1e1b4b")
+    ),
+    cssLight: variant(
+      GRAIN_LIGHT,
+      [accent(80, 10, 139, 92, 246, 0.22), accent(10, 90, 109, 40, 217, 0.14)],
+      base("#efeafd", "#ddd5f5")
+    ),
+    bandAlpha: 0.45
   },
   {
     id: "bg_deduction_fog",
-    label: "Deduction Fog",
     category: "roleplay",
-    css: "radial-gradient(at 30% 20%, #6b728044 0%, transparent 55%), radial-gradient(at 90% 90%, #37415155 0%, transparent 55%), linear-gradient(170deg, #1f2937, #374151)"
+    cssDark: variant(
+      GRAIN_DARK,
+      [accent(30, 20, 107, 114, 128, 0.2), accent(90, 90, 55, 65, 81, 0.35)],
+      base("#1b2430", "#2e3844")
+    ),
+    cssLight: variant(
+      GRAIN_LIGHT,
+      [accent(30, 20, 107, 114, 128, 0.18), accent(90, 90, 148, 163, 184, 0.28)],
+      base("#e8ebef", "#ccd2da")
+    ),
+    bandAlpha: 0.35
   },
 
   // ---- philosophy ----
   {
     id: "bg_marble_hall",
-    label: "Marble Hall",
     category: "philosophy",
-    css: "radial-gradient(at 25% 15%, #f9fafb 0%, transparent 55%), radial-gradient(at 80% 90%, #d1d5db 0%, transparent 55%), linear-gradient(160deg, #f3f4f6, #e5e7eb)"
+    cssDark: variant(
+      GRAIN_DARK,
+      [
+        MARBLE_VEINS_DARK,
+        accent(25, 15, 120, 126, 138, 0.12),
+        accent(80, 90, 78, 82, 92, 0.16)
+      ],
+      base("#17181b", "#232529")
+    ),
+    cssLight: variant(
+      GRAIN_LIGHT,
+      [
+        MARBLE_VEINS_LIGHT,
+        accent(25, 15, 255, 255, 255, 0.9),
+        accent(80, 90, 190, 196, 205, 0.5)
+      ],
+      base("#f4f5f7", "#e2e5e9")
+    ),
+    bandAlpha: 0.35
   },
   {
     id: "bg_zen_ink",
-    label: "Zen Ink",
     category: "philosophy",
-    css: "radial-gradient(at 85% 15%, #52525b33 0%, transparent 55%), radial-gradient(at 15% 85%, #27272a55 0%, transparent 50%), linear-gradient(160deg, #fafafa, #d4d4d8)"
+    // Night ink — mist blooms lighter than the paper, the flagship fix for
+    // the "flat murky gray" bug (the old single gradient was authored light
+    // and got crushed by a global 50% dark scrim; see .claude-bg-optimization-plan.md).
+    cssDark: [
+      "repeating-linear-gradient(0deg, rgba(255,255,255,0.012) 0 1px, transparent 1px 3px)",
+      "repeating-linear-gradient(90deg, rgba(255,255,255,0.009) 0 1px, transparent 1px 4px)",
+      "radial-gradient(60% 45% at 85% 10%, rgba(113,113,122,0.16) 0%, rgba(113,113,122,0.06) 45%, transparent 72%)",
+      "radial-gradient(50% 38% at 12% 88%, rgba(82,82,91,0.14) 0%, transparent 68%)",
+      base("#101013", "#1e1e24")
+    ].join(", "),
+    // Rice paper + ink bleed.
+    cssLight: [
+      "repeating-linear-gradient(0deg, rgba(0,0,0,0.016) 0 1px, transparent 1px 3px)",
+      "repeating-linear-gradient(90deg, rgba(0,0,0,0.012) 0 1px, transparent 1px 4px)",
+      "linear-gradient(178deg, transparent 58%, rgba(212,212,216,0.5) 68%, transparent 80%)",
+      "radial-gradient(60% 45% at 88% 8%, rgba(39,39,42,0.38) 0%, rgba(39,39,42,0.22) 34%, rgba(39,39,42,0.08) 58%, transparent 75%)",
+      "radial-gradient(45% 35% at 70% 22%, rgba(63,63,70,0.2) 0%, rgba(63,63,70,0.07) 45%, transparent 70%)",
+      "radial-gradient(55% 40% at 6% 96%, rgba(24,24,27,0.3) 0%, rgba(24,24,27,0.1) 45%, transparent 72%)",
+      base("#f6f5f1", "#d6d5d0")
+    ].join(", "),
+    bandAlpha: 0.35
   }
 ]
 
@@ -97,39 +264,154 @@ export function getBackgroundPreset(id: string | null): BackgroundPreset | null 
   return BACKGROUND_PRESETS.find((p) => p.id === id) ?? null
 }
 
-const STYLE_ELEMENT_ID = "persona-chat-background-style"
+export type Theme = "light" | "dark"
 
 /**
- * Broad fallback: re-skinning `body` is cruder than targeting DeepSeek's
- * exact chat pane, but it's robust to DOM/class-name churn and doesn't
- * require reverse-engineering obfuscated class names. Layers a translucent
- * scrim (light/dark aware) under the gradient so DeepSeek's own message
- * bubbles — which paint their own solid background — stay legible regardless
- * of which preset is picked.
+ * `prefers-color-scheme` reflects the OS, but DeepSeek has its own theme
+ * toggle that can disagree with it. Detect the page's actual theme from
+ * computed assistant-text color instead — DOM-structure-agnostic, so it
+ * survives DeepSeek UI updates. Falls back to prefers-color-scheme if body
+ * color can't be read (e.g. before first paint).
  */
-export function applyBackground(id: string | null): void {
-  const existing = document.getElementById(STYLE_ELEMENT_ID)
-  const preset = getBackgroundPreset(id)
+export function detectTheme(): Theme {
+  try {
+    const match = getComputedStyle(document.body).color.match(/\d+/g)
+    if (match && match.length >= 3) {
+      const [r, g, b] = match.map(Number)
+      const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
+      return luminance > 140 ? "dark" : "light"
+    }
+  } catch {
+    // fall through
+  }
+  return typeof matchMedia !== "undefined" && matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light"
+}
 
-  if (!preset) {
-    existing?.remove()
-    return
+/**
+ * One fixed horizontal band, pinned to where DeepSeek's centered content
+ * column always lives (never wider than ~60% of the viewport). This is the
+ * ONLY scrim in the system — it's margin on top of variants already inside
+ * their luminance band, not a rescue, so the reading zone stays calm while
+ * the gutters keep the gradient's full vividness. Do not reintroduce a
+ * full-viewport scrim.
+ */
+function readingBand(theme: Theme, alpha: number): string {
+  const rgb = theme === "dark" ? "9,11,16" : "250,250,250"
+  return `linear-gradient(to right, rgba(${rgb},0) 0%, rgba(${rgb},${alpha}) 16%, rgba(${rgb},${alpha}) 84%, rgba(${rgb},0) 100%)`
+}
+
+function compositedImage(preset: BackgroundPreset, theme: Theme): string {
+  const band = readingBand(theme, preset.bandAlpha ?? 0.35)
+  const layer = theme === "dark" ? preset.cssDark : preset.cssLight
+  return `${band}, ${layer}`
+}
+
+/** Uniform-strength version of the band for swatch previews — a 4:3 swatch
+ *  is all "reading zone", so there's no gutter/center distinction to show. */
+export function getSwatchCss(preset: BackgroundPreset, theme: Theme): string {
+  const rgb = theme === "dark" ? "9,11,16" : "250,250,250"
+  const alpha = preset.bandAlpha ?? 0.35
+  const layer = theme === "dark" ? preset.cssDark : preset.cssLight
+  return `linear-gradient(rgba(${rgb},${alpha}), rgba(${rgb},${alpha})), ${layer}`
+}
+
+const CONTAINER_ID = "persona-chat-bg"
+let activePresetId: string | null = null
+let themeWatcherInstalled = false
+
+function reducedMotion(): boolean {
+  return (
+    typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches
+  )
+}
+
+function ensureContainer(): HTMLDivElement {
+  let container = document.getElementById(CONTAINER_ID) as HTMLDivElement | null
+  if (!container) {
+    container = document.createElement("div")
+    container.id = CONTAINER_ID
+    container.style.cssText = "position:fixed;inset:0;z-index:-1;pointer-events:none;"
+    document.body.appendChild(container)
+  }
+  return container
+}
+
+/**
+ * Renders on an injected fixed div rather than `body`'s own background:
+ * `background-image` isn't animatable, so cross-fading presets means
+ * layering a new element and transitioning its opacity, then dropping the
+ * old one. Also sidesteps `background-attachment: fixed` repaint cost on
+ * scroll now that stacks are heavier (grain layers) — the div rasterizes
+ * once and composites like any other fixed layer.
+ */
+function renderLayer(preset: BackgroundPreset, theme: Theme): void {
+  const container = ensureContainer()
+  const duration = reducedMotion() ? 0 : 400
+
+  const layer = document.createElement("div")
+  layer.style.cssText = `position:absolute;inset:0;background-image:${compositedImage(
+    preset,
+    theme
+  )};background-repeat:no-repeat;opacity:0;transition:opacity ${duration}ms ease;`
+  container.appendChild(layer)
+
+  void layer.offsetHeight // force reflow so the opacity transition actually animates
+  layer.style.opacity = "1"
+
+  const staleLayers = Array.from(container.children).filter((el) => el !== layer)
+  setTimeout(() => staleLayers.forEach((el) => el.remove()), duration + 50)
+}
+
+function clearLayers(): void {
+  const container = document.getElementById(CONTAINER_ID)
+  if (!container) return
+  const duration = reducedMotion() ? 0 : 400
+  const layers = Array.from(container.children) as HTMLElement[]
+  layers.forEach((el) => {
+    el.style.opacity = "0"
+  })
+  setTimeout(() => layers.forEach((el) => el.remove()), duration + 50)
+}
+
+function installThemeWatcher(): void {
+  if (themeWatcherInstalled) return
+  themeWatcherInstalled = true
+
+  let debounceTimer: ReturnType<typeof setTimeout> | null = null
+  function onThemeMaybeChanged() {
+    if (debounceTimer) clearTimeout(debounceTimer)
+    debounceTimer = setTimeout(() => {
+      if (!activePresetId) return
+      const preset = getBackgroundPreset(activePresetId)
+      if (preset) renderLayer(preset, detectTheme())
+    }, 150)
   }
 
-  const style = existing ?? document.createElement("style")
-  style.id = STYLE_ELEMENT_ID
-  style.textContent = `
-    body {
-      background-image: linear-gradient(rgba(255,255,255,0.5), rgba(255,255,255,0.5)), ${preset.css} !important;
-      background-size: cover !important;
-      background-attachment: fixed !important;
-    }
-    @media (prefers-color-scheme: dark) {
-      body {
-        background-image: linear-gradient(rgba(10,12,18,0.5), rgba(10,12,18,0.5)), ${preset.css} !important;
-      }
-    }
-  `
+  try {
+    const observer = new MutationObserver(onThemeMaybeChanged)
+    const opts: MutationObserverInit = { attributes: true, attributeFilter: ["class", "style", "data-theme"] }
+    observer.observe(document.documentElement, opts)
+    observer.observe(document.body, opts)
+  } catch {
+    // MutationObserver unavailable in some odd context — theme just won't live-update.
+  }
 
-  if (!existing) document.head.appendChild(style)
+  try {
+    matchMedia("(prefers-color-scheme: dark)").addEventListener("change", onThemeMaybeChanged)
+  } catch {
+    // no-op
+  }
+}
+
+export function applyBackground(id: string | null): void {
+  activePresetId = id
+  const preset = getBackgroundPreset(id)
+  if (!preset) {
+    clearLayers()
+    return
+  }
+  installThemeWatcher()
+  renderLayer(preset, detectTheme())
 }
