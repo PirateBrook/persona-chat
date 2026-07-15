@@ -1,0 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Content-script namespace guard.
+ * Plasmo scopes CSS to its shadow DOM by default; extra guards live in
+ * component-level classNames rather than global overrides. */
