@@ -268,18 +268,27 @@ export type Theme = "light" | "dark"
 
 /**
  * `prefers-color-scheme` reflects the OS, but DeepSeek has its own theme
- * toggle that can disagree with it. Detect the page's actual theme from
- * computed assistant-text color instead — DOM-structure-agnostic, so it
- * survives DeepSeek UI updates. Falls back to prefers-color-scheme if body
- * color can't be read (e.g. before first paint).
+ * toggle that can disagree with it. `color-scheme` is the standards-based
+ * signal a page uses to declare its own actual theme (verified live against
+ * chat.deepseek.com: `getComputedStyle(document.body).colorScheme` reports
+ * "dark"/"light" directly and correctly) — prefer it over guessing from an
+ * arbitrary computed color, which earlier turned out to read body's
+ * inherited text color rather than anything theme-related (measured
+ * rgb(128,0,128) on an actually-dark page — meaningless). Falls back to
+ * body's own background-color luminance (still theme-indicative, unlike
+ * text color), then prefers-color-scheme.
  */
 export function detectTheme(): Theme {
   try {
-    const match = getComputedStyle(document.body).color.match(/\d+/g)
+    const scheme = getComputedStyle(document.body).colorScheme
+    if (scheme.includes("dark") && !scheme.includes("light")) return "dark"
+    if (scheme.includes("light") && !scheme.includes("dark")) return "light"
+
+    const match = getComputedStyle(document.body).backgroundColor.match(/\d+/g)
     if (match && match.length >= 3) {
       const [r, g, b] = match.map(Number)
       const luminance = 0.2126 * r + 0.7152 * g + 0.0722 * b
-      return luminance > 140 ? "dark" : "light"
+      return luminance > 140 ? "light" : "dark"
     }
   } catch {
     // fall through
@@ -317,62 +326,54 @@ export function getSwatchCss(preset: BackgroundPreset, theme: Theme): string {
   return `linear-gradient(rgba(${rgb},${alpha}), rgba(${rgb},${alpha})), ${layer}`
 }
 
-const CONTAINER_ID = "persona-chat-bg"
+const STYLE_ELEMENT_ID = "persona-chat-background-style"
 let activePresetId: string | null = null
 let themeWatcherInstalled = false
 
-function reducedMotion(): boolean {
-  return (
-    typeof matchMedia !== "undefined" && matchMedia("(prefers-reduced-motion: reduce)").matches
-  )
-}
-
-function ensureContainer(): HTMLDivElement {
-  let container = document.getElementById(CONTAINER_ID) as HTMLDivElement | null
-  if (!container) {
-    container = document.createElement("div")
-    container.id = CONTAINER_ID
-    container.style.cssText = "position:fixed;inset:0;z-index:-1;pointer-events:none;"
-    document.body.appendChild(container)
-  }
-  return container
-}
-
 /**
- * Renders on an injected fixed div rather than `body`'s own background:
- * `background-image` isn't animatable, so cross-fading presets means
- * layering a new element and transitioning its opacity, then dropping the
- * old one. Also sidesteps `background-attachment: fixed` repaint cost on
- * scroll now that stacks are heavier (grain layers) — the div rasterizes
- * once and composites like any other fixed layer.
+ * A `<style>` rule targeting `html` AND `body`'s own `background-image` —
+ * NOT a sibling element. A sibling div, even at `z-index: -1`, is just
+ * another normal element in the stacking order: verified live that
+ * DeepSeek's own descendants (any of them, at any depth, with any opaque
+ * background) painted over such a div, since negative z-index only
+ * outranks other things in the *same* stacking context, not every opaque
+ * box in the whole subtree.
+ *
+ * Setting it on `body` alone isn't reliable either: per the CSS canvas
+ * background-propagation rule, when `html` has no background, `body`'s
+ * background gets "promoted" to paint the page canvas, and `body`'s own box
+ * is treated as if it has no background *of its own* for normal painting —
+ * an ambiguous, implementation-sensitive path. Declaring the identical
+ * image on both elements sidesteps the propagation question entirely:
+ * whichever one ends up responsible for the canvas, it's carrying the
+ * right value, at the cost of not being animatable — presets swap
+ * instantly rather than cross-fading.
  */
-function renderLayer(preset: BackgroundPreset, theme: Theme): void {
-  const container = ensureContainer()
-  const duration = reducedMotion() ? 0 : 400
-
-  const layer = document.createElement("div")
-  layer.style.cssText = `position:absolute;inset:0;background-image:${compositedImage(
-    preset,
-    theme
-  )};background-repeat:no-repeat;opacity:0;transition:opacity ${duration}ms ease;`
-  container.appendChild(layer)
-
-  void layer.offsetHeight // force reflow so the opacity transition actually animates
-  layer.style.opacity = "1"
-
-  const staleLayers = Array.from(container.children).filter((el) => el !== layer)
-  setTimeout(() => staleLayers.forEach((el) => el.remove()), duration + 50)
+function ensureStyleElement(): HTMLStyleElement {
+  let style = document.getElementById(STYLE_ELEMENT_ID) as HTMLStyleElement | null
+  if (!style) {
+    style = document.createElement("style")
+    style.id = STYLE_ELEMENT_ID
+    document.head.appendChild(style)
+  }
+  return style
 }
 
-function clearLayers(): void {
-  const container = document.getElementById(CONTAINER_ID)
-  if (!container) return
-  const duration = reducedMotion() ? 0 : 400
-  const layers = Array.from(container.children) as HTMLElement[]
-  layers.forEach((el) => {
-    el.style.opacity = "0"
-  })
-  setTimeout(() => layers.forEach((el) => el.remove()), duration + 50)
+function render(preset: BackgroundPreset, theme: Theme): void {
+  const style = ensureStyleElement()
+  const image = compositedImage(preset, theme)
+  style.textContent = `
+    html, body {
+      background-image: ${image} !important;
+      background-repeat: no-repeat !important;
+      background-size: cover !important;
+      background-attachment: fixed !important;
+    }
+  `
+}
+
+function clear(): void {
+  document.getElementById(STYLE_ELEMENT_ID)?.remove()
 }
 
 function installThemeWatcher(): void {
@@ -385,7 +386,7 @@ function installThemeWatcher(): void {
     debounceTimer = setTimeout(() => {
       if (!activePresetId) return
       const preset = getBackgroundPreset(activePresetId)
-      if (preset) renderLayer(preset, detectTheme())
+      if (preset) render(preset, detectTheme())
     }, 150)
   }
 
@@ -409,9 +410,9 @@ export function applyBackground(id: string | null): void {
   activePresetId = id
   const preset = getBackgroundPreset(id)
   if (!preset) {
-    clearLayers()
+    clear()
     return
   }
   installThemeWatcher()
-  renderLayer(preset, detectTheme())
+  render(preset, detectTheme())
 }
