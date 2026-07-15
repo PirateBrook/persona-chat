@@ -2,24 +2,34 @@ import { useEffect, useState } from "react"
 
 import "./style.css"
 
+import { BACKGROUND_PRESETS } from "~lib/backgrounds"
 import {
   deletePersona,
   getPersona,
   listPersonas,
   makePersonaId,
+  makeWorldInfoId,
   upsertPersona
-} from "~src/storage"
-import type { PersonaCard } from "~src/types"
+} from "~storage"
+import type { PersonaCard, WorldInfoEntry } from "~types"
 
 /**
  * Options page is the primary create/edit surface. Content-script panel is
  * consumption-only (apply, browse); mutation flows through here. Keeps the
  * overlay lightweight and lets us reuse this page as a standalone editor
  * link ("Edit in tab") from the overlay later.
+ *
+ * World Info keys are edited as free-form comma-separated text per row.
+ * Keeping a separate draft string per row (rather than deriving the input's
+ * value from `keys.join(", ")` on every keystroke) avoids a controlled-input
+ * round-trip bug: split→join on every render reformats spacing out from
+ * under the user's cursor. The draft is only parsed into `keys: string[]`
+ * at save time.
  */
 export default function Options() {
   const [personas, setPersonas] = useState<PersonaCard[]>([])
   const [editing, setEditing] = useState<PersonaCard | null>(null)
+  const [worldInfoKeysDraft, setWorldInfoKeysDraft] = useState<Record<string, string>>({})
 
   useEffect(() => {
     void refresh()
@@ -29,14 +39,25 @@ export default function Options() {
     setPersonas(await listPersonas())
   }
 
+  function loadIntoEditor(persona: PersonaCard) {
+    setEditing(persona)
+    setWorldInfoKeysDraft(
+      Object.fromEntries((persona.worldInfo ?? []).map((e) => [e.id, e.keys.join(", ")]))
+    )
+  }
+
   function startCreate() {
-    setEditing({
+    loadIntoEditor({
       id: makePersonaId(),
       name: "",
       avatarEmoji: "🎭",
       personaPrompt: "",
+      scenario: "",
+      exampleDialogue: "",
       greeting: "",
-      worldLore: "",
+      driftReminder: "",
+      worldInfo: [],
+      backgroundId: undefined,
       tags: [],
       createdAt: Date.now(),
       updatedAt: Date.now()
@@ -45,7 +66,7 @@ export default function Options() {
 
   async function startEdit(id: string) {
     const p = await getPersona(id)
-    if (p) setEditing(p)
+    if (p) loadIntoEditor(p)
   }
 
   async function save() {
@@ -54,7 +75,16 @@ export default function Options() {
       alert("Name and Persona prompt are required.")
       return
     }
-    await upsertPersona(editing)
+
+    const finalWorldInfo: WorldInfoEntry[] = (editing.worldInfo ?? []).map((entry) => ({
+      ...entry,
+      keys: (worldInfoKeysDraft[entry.id] ?? entry.keys.join(", "))
+        .split(",")
+        .map((k) => k.trim())
+        .filter(Boolean)
+    }))
+
+    await upsertPersona({ ...editing, worldInfo: finalWorldInfo })
     setEditing(null)
     await refresh()
   }
@@ -64,6 +94,88 @@ export default function Options() {
     await deletePersona(id)
     if (editing?.id === id) setEditing(null)
     await refresh()
+  }
+
+  function exportAll() {
+    const blob = new Blob([JSON.stringify(personas, null, 2)], {
+      type: "application/json"
+    })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement("a")
+    a.href = url
+    a.download = `persona-chat-export-${new Date().toISOString().slice(0, 10)}.json`
+    a.click()
+    URL.revokeObjectURL(url)
+  }
+
+  async function importFromFile(file: File) {
+    try {
+      const parsed = JSON.parse(await file.text())
+      const cards: unknown[] = Array.isArray(parsed) ? parsed : [parsed]
+      let imported = 0
+      for (const raw of cards) {
+        const card = raw as Partial<PersonaCard>
+        if (!card || typeof card.name !== "string" || typeof card.personaPrompt !== "string") {
+          continue
+        }
+        await upsertPersona({
+          // Fresh id on import: never silently overwrite an existing persona
+          // that happens to share an id with the shared file.
+          id: makePersonaId(),
+          name: card.name,
+          avatarEmoji: card.avatarEmoji || "🎭",
+          personaPrompt: card.personaPrompt,
+          scenario: card.scenario,
+          exampleDialogue: card.exampleDialogue,
+          greeting: card.greeting,
+          driftReminder: card.driftReminder,
+          worldInfo: Array.isArray(card.worldInfo)
+            ? card.worldInfo
+                .filter((e) => e && typeof e.content === "string")
+                .map((e) => ({
+                  id: makeWorldInfoId(),
+                  keys: Array.isArray(e.keys) ? e.keys.filter((k) => typeof k === "string") : [],
+                  content: e.content,
+                  enabled: e.enabled !== false
+                }))
+            : undefined,
+          backgroundId: typeof card.backgroundId === "string" ? card.backgroundId : undefined,
+          tags: Array.isArray(card.tags) ? card.tags.filter((t) => typeof t === "string") : [],
+          createdAt: Date.now(),
+          updatedAt: Date.now()
+        })
+        imported++
+      }
+      await refresh()
+      alert(imported > 0 ? `Imported ${imported} persona(s).` : "No valid personas found in file.")
+    } catch {
+      alert("Couldn't parse that file — expected a persona-chat JSON export.")
+    }
+  }
+
+  function addWorldInfoRow() {
+    if (!editing) return
+    const entry: WorldInfoEntry = { id: makeWorldInfoId(), keys: [], content: "", enabled: true }
+    setEditing({ ...editing, worldInfo: [...(editing.worldInfo ?? []), entry] })
+    setWorldInfoKeysDraft((prev) => ({ ...prev, [entry.id]: "" }))
+  }
+
+  function removeWorldInfoRow(id: string) {
+    if (!editing) return
+    setEditing({ ...editing, worldInfo: (editing.worldInfo ?? []).filter((e) => e.id !== id) })
+    setWorldInfoKeysDraft((prev) => {
+      const next = { ...prev }
+      delete next[id]
+      return next
+    })
+  }
+
+  function updateWorldInfoContent(id: string, content: string) {
+    if (!editing) return
+    setEditing({
+      ...editing,
+      worldInfo: (editing.worldInfo ?? []).map((e) => (e.id === id ? { ...e, content } : e))
+    })
   }
 
   return (
@@ -76,12 +188,33 @@ export default function Options() {
               Manage your AI personas · v0 (local storage)
             </p>
           </div>
-          <button
-            onClick={startCreate}
-            className="rounded-md bg-persona-600 px-4 py-2 text-sm font-medium text-white hover:bg-persona-700"
-          >
-            + New persona
-          </button>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={exportAll}
+              className="rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
+            >
+              Export
+            </button>
+            <label className="cursor-pointer rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800">
+              Import
+              <input
+                type="file"
+                accept="application/json,.json"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) void importFromFile(file)
+                  e.target.value = ""
+                }}
+              />
+            </label>
+            <button
+              onClick={startCreate}
+              className="rounded-md bg-persona-600 px-4 py-2 text-sm font-medium text-white hover:bg-persona-700"
+            >
+              + New persona
+            </button>
+          </div>
         </header>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
@@ -102,6 +235,11 @@ export default function Options() {
                       <div className="mt-1 line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
                         {p.personaPrompt}
                       </div>
+                      {(p.worldInfo?.length ?? 0) > 0 && (
+                        <div className="mt-1 text-[10px] text-persona-600">
+                          📖 {p.worldInfo!.length} world info {p.worldInfo!.length === 1 ? "entry" : "entries"}
+                        </div>
+                      )}
                     </div>
                     <div className="flex flex-col gap-1">
                       <button
@@ -150,13 +288,32 @@ export default function Options() {
                     className="w-24 rounded border border-gray-300 bg-white px-2 py-1.5 text-lg dark:border-gray-700 dark:bg-gray-800"
                   />
                 </FormField>
-                <FormField label="Persona prompt (system prompt)">
+                <FormField label="Persona prompt (personality)">
                   <textarea
                     value={editing.personaPrompt}
                     onChange={(e) =>
                       setEditing({ ...editing, personaPrompt: e.target.value })
                     }
                     rows={6}
+                    className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800"
+                  />
+                </FormField>
+                <FormField label="Scenario (optional) — the setting/situation">
+                  <textarea
+                    value={editing.scenario ?? ""}
+                    onChange={(e) => setEditing({ ...editing, scenario: e.target.value })}
+                    rows={2}
+                    className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800"
+                  />
+                </FormField>
+                <FormField label="Example dialogue (optional) — locks voice/style">
+                  <textarea
+                    value={editing.exampleDialogue ?? ""}
+                    onChange={(e) =>
+                      setEditing({ ...editing, exampleDialogue: e.target.value })
+                    }
+                    rows={3}
+                    placeholder={"User: ...\nCharacter: ..."}
                     className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800"
                   />
                 </FormField>
@@ -169,16 +326,85 @@ export default function Options() {
                     className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800"
                   />
                 </FormField>
-                <FormField label="World lore (optional)">
-                  <textarea
-                    value={editing.worldLore ?? ""}
+                <FormField label="In-character reminder (optional) — resurfaces every few enrich-taps to fight drift">
+                  <input
+                    value={editing.driftReminder ?? ""}
                     onChange={(e) =>
-                      setEditing({ ...editing, worldLore: e.target.value })
+                      setEditing({ ...editing, driftReminder: e.target.value })
                     }
-                    rows={4}
                     className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800"
                   />
                 </FormField>
+                <FormField label="Background (optional)">
+                  <select
+                    value={editing.backgroundId ?? ""}
+                    onChange={(e) =>
+                      setEditing({ ...editing, backgroundId: e.target.value || undefined })
+                    }
+                    className="w-full rounded border border-gray-300 bg-white px-2 py-1.5 text-sm dark:border-gray-700 dark:bg-gray-800"
+                  >
+                    <option value="">None</option>
+                    {BACKGROUND_PRESETS.map((preset) => (
+                      <option key={preset.id} value={preset.id}>
+                        {preset.label} ({preset.category})
+                      </option>
+                    ))}
+                  </select>
+                </FormField>
+
+                <div>
+                  <div className="mb-1 flex items-center justify-between">
+                    <div className="text-xs font-medium text-gray-600 dark:text-gray-400">
+                      World Info (optional) — keywords that surface lore on "✨ Enrich"
+                    </div>
+                    <button
+                      onClick={addWorldInfoRow}
+                      className="rounded px-2 py-0.5 text-xs text-persona-600 hover:bg-persona-50 dark:hover:bg-gray-800"
+                    >
+                      + Add entry
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {(editing.worldInfo ?? []).map((entry) => (
+                      <div
+                        key={entry.id}
+                        className="space-y-1 rounded border border-gray-200 p-2 dark:border-gray-700"
+                      >
+                        <div className="flex items-center gap-2">
+                          <input
+                            value={worldInfoKeysDraft[entry.id] ?? ""}
+                            onChange={(e) =>
+                              setWorldInfoKeysDraft((prev) => ({
+                                ...prev,
+                                [entry.id]: e.target.value
+                              }))
+                            }
+                            placeholder="keys, comma, separated"
+                            className="flex-1 rounded border border-gray-300 bg-white px-2 py-1 text-xs dark:border-gray-700 dark:bg-gray-800"
+                          />
+                          <button
+                            onClick={() => removeWorldInfoRow(entry.id)}
+                            className="rounded px-1.5 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-gray-800"
+                            aria-label="Remove entry"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                        <textarea
+                          value={entry.content}
+                          onChange={(e) => updateWorldInfoContent(entry.id, e.target.value)}
+                          rows={2}
+                          placeholder="Lore to inject when a key matches the draft message"
+                          className="w-full rounded border border-gray-300 bg-white px-2 py-1 text-xs dark:border-gray-700 dark:bg-gray-800"
+                        />
+                      </div>
+                    ))}
+                    {(editing.worldInfo ?? []).length === 0 && (
+                      <p className="text-xs text-gray-400">No entries yet.</p>
+                    )}
+                  </div>
+                </div>
+
                 <div className="flex gap-2 pt-2">
                   <button
                     onClick={save}

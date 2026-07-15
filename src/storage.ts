@@ -7,9 +7,9 @@ import { DEFAULT_APP_STATE } from "./types"
  * - chrome.storage.local key "personas": Record<string, PersonaCard>
  * - chrome.storage.local key "appState": AppState
  *
- * Long-form fields (worldLore) currently live inline on the card. When we
- * outgrow the 10MB local quota (v1+), split heavy fields into IndexedDB
- * behind the same interface.
+ * Long-form fields (worldInfo entries) currently live inline on the card.
+ * When we outgrow the 10MB local quota (v1+), split heavy fields into
+ * IndexedDB behind the same interface.
  *
  * All chrome.storage calls flow through safeChromeCall so a stale content
  * script (extension was reloaded on a live tab) fails soft and lets the
@@ -68,4 +68,8 @@ export async function setAppState(patch: Partial<AppState>): Promise<AppState> {
 
 export function makePersonaId(): string {
   return `persona_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
+}
+
+export function makeWorldInfoId(): string {
+  return `wi_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
 }

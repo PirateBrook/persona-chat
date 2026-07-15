@@ -1,7 +1,8 @@
 import { useEffect, useState, type FC } from "react"
 
-import { buildPersonaMessage, injectIntoActiveChat } from "../lib/deepseek-injector"
+import { getActiveAdapter, type InjectResult } from "../lib/adapters"
 import { extensionContext } from "../lib/extension-context"
+import { buildPersonaMessage } from "../lib/persona-message"
 import {
   getAppState,
   listPersonas,
@@ -10,17 +11,23 @@ import {
 } from "../storage"
 import { SEED_PERSONAS } from "../seed"
 import type { AppState, ModeKey, PersonaCard } from "../types"
+import { BackgroundPicker } from "./BackgroundPicker"
 import { ModeTabs } from "./ModeTabs"
 import { PersonaList } from "./PersonaList"
 
 /**
- * Applying a persona: inject the wrapped persona message into DeepSeek's
- * chat input via React-aware DOM manipulation. Falls back to clipboard if
- * the input can't be located (DOM change, unknown UI variant).
+ * Applying a persona: inject the wrapped persona message into the active
+ * platform's chat input via its adapter. Falls back to clipboard if the
+ * input can't be located (DOM change, unknown UI variant, or unsupported
+ * host).
  */
-async function applyPersona(persona: PersonaCard) {
-  const message = buildPersonaMessage(persona.personaPrompt, persona.greeting)
-  return await injectIntoActiveChat(message)
+async function applyPersona(persona: PersonaCard): Promise<InjectResult> {
+  const adapter = getActiveAdapter()
+  if (!adapter) {
+    return { ok: false, method: "clipboard-fallback", error: "unsupported_host" }
+  }
+  const message = buildPersonaMessage(persona)
+  return await adapter.injectText(message)
 }
 
 interface Props {
@@ -67,9 +74,24 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
     setState(next)
   }
 
+  async function handleBackgroundSelect(id: string | null) {
+    const next = await setAppState({ activeBackgroundId: id })
+    setState(next)
+  }
+
+  async function handleDeactivate() {
+    const next = await setAppState({ activePersonaId: null, activeBackgroundId: null })
+    setState(next)
+    setToast("Persona deactivated. Start a new chat for a clean slate.")
+    setTimeout(() => setToast(null), 3500)
+  }
+
   async function handleApply(persona: PersonaCard) {
     const result = await applyPersona(persona)
-    const next = await setAppState({ activePersonaId: persona.id })
+    const next = await setAppState({
+      activePersonaId: persona.id,
+      ...(persona.backgroundId ? { activeBackgroundId: persona.backgroundId } : {})
+    })
     setState(next)
 
     let message: string
@@ -133,6 +155,8 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
     )
   }
 
+  const activePersona = personas.find((p) => p.id === state.activePersonaId) ?? null
+
   return (
     <div className="flex h-full flex-col bg-white text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       <header className="flex items-center justify-between border-b border-gray-200 px-4 py-3 dark:border-gray-800">
@@ -158,6 +182,28 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
 
       <ModeTabs active={state.activeMode} onChange={handleModeChange} />
 
+      {activePersona && (
+        <div className="flex items-center gap-2 border-b border-persona-100 bg-persona-50 px-4 py-2 dark:border-gray-800 dark:bg-gray-800">
+          <span className="text-lg leading-none" aria-hidden>
+            {activePersona.avatarEmoji || "🎭"}
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-xs font-semibold text-persona-700 dark:text-persona-100">
+              {activePersona.name}
+            </div>
+            <div className="text-[10px] text-persona-600/70 dark:text-gray-400">
+              Active persona
+            </div>
+          </div>
+          <button
+            onClick={handleDeactivate}
+            className="rounded border border-persona-500/40 px-2 py-1 text-[10px] font-medium text-persona-700 hover:bg-persona-100 dark:text-persona-100 dark:hover:bg-gray-700"
+          >
+            Deactivate
+          </button>
+        </div>
+      )}
+
       <main className="flex-1 overflow-y-auto">
         {state.activeMode === "original" && (
           <div className="p-6 text-sm text-gray-500">
@@ -170,13 +216,10 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
           </div>
         )}
         {state.activeMode === "image" && (
-          <div className="p-6 text-sm text-gray-500">
-            <p className="mb-2 font-medium text-gray-700 dark:text-gray-300">Coming soon</p>
-            <p className="opacity-80">
-              Image-mode PE + asset library ships in v0.1. Native DeepSeek image gen
-              isn't out yet; paid gen via Persona.chat cloud is a v1 feature.
-            </p>
-          </div>
+          <BackgroundPicker
+            activeBackgroundId={state.activeBackgroundId}
+            onSelect={handleBackgroundSelect}
+          />
         )}
         {state.activeMode === "persona" && (
           <PersonaList

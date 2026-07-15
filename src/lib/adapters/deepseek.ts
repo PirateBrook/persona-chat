@@ -1,3 +1,5 @@
+import type { InjectResult, PlatformAdapter } from "./types"
+
 /**
  * DeepSeek chat input injection.
  *
@@ -9,14 +11,6 @@
  * Intentionally does NOT auto-send. User sees the injected text and presses
  * Enter themselves. Auto-send is a v0.2 config option.
  */
-
-export type InjectMethod = "dom-injection" | "clipboard-fallback"
-
-export interface InjectResult {
-  ok: boolean
-  method: InjectMethod
-  error?: string
-}
 
 /**
  * Selectors ordered from specific → generic. DeepSeek's DOM has shifted over
@@ -37,7 +31,7 @@ const INPUT_SELECTORS: readonly string[] = [
   'div[contenteditable="true"]'
 ]
 
-export function findChatInput(): HTMLElement | null {
+function findChatInput(): HTMLElement | null {
   for (const selector of INPUT_SELECTORS) {
     const nodes = document.querySelectorAll<HTMLElement>(selector)
     for (const el of Array.from(nodes)) {
@@ -56,7 +50,15 @@ function isElementUsable(el: HTMLElement): boolean {
   return true
 }
 
-export async function injectIntoActiveChat(text: string): Promise<InjectResult> {
+function readDraftText(): string {
+  const el = findChatInput()
+  if (!el) return ""
+  if (el instanceof HTMLTextAreaElement) return el.value
+  if (el.getAttribute("contenteditable") === "true") return el.innerText
+  return ""
+}
+
+async function injectText(text: string): Promise<InjectResult> {
   const el = findChatInput()
 
   if (!el) {
@@ -136,24 +138,9 @@ async function clipboardFallback(text: string, reason: string): Promise<InjectRe
   }
 }
 
-/**
- * Wraps a raw persona prompt so DeepSeek understands "adopt this role" rather
- * than treating the text as the user's first request. Keeps the trailing
- * greeting hook so the model responds in-character right away.
- */
-export function buildPersonaMessage(personaPrompt: string, greeting?: string): string {
-  const lines = [
-    "From now on, please act as the following persona and stay in character for the rest of our conversation:",
-    "",
-    personaPrompt.trim(),
-    ""
-  ]
-
-  if (greeting?.trim()) {
-    lines.push(`When you acknowledge, respond in character with: "${greeting.trim()}"`)
-  } else {
-    lines.push("Acknowledge briefly in character, then wait for my first question.")
-  }
-
-  return lines.join("\n")
+export const deepseekAdapter: PlatformAdapter = {
+  id: "deepseek",
+  findChatInput,
+  readDraftText,
+  injectText
 }

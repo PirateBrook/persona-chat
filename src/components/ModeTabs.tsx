@@ -9,7 +9,7 @@ interface Props {
 
 const TABS: { key: ModeKey; label: string; description: string }[] = [
   { key: "original", label: "Original", description: "Untouched DeepSeek" },
-  { key: "image", label: "Image", description: "Prompt & assets (soon)" },
+  { key: "image", label: "Image", description: "Background presets" },
   { key: "persona", label: "Persona", description: "Roleplay & prompts" }
 ]
 
