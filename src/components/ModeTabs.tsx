@@ -1,5 +1,6 @@
 import type { FC } from "react"
 
+import { useI18n } from "../lib/i18n"
 import type { ModeKey } from "../types"
 
 interface Props {
@@ -12,12 +13,14 @@ interface Props {
  * (an informational placeholder tab) is gone from the UI; PersonaPanel maps
  * any stored "original" value to "persona" so old state keeps working.
  */
-const TABS: { key: ModeKey; label: string }[] = [
-  { key: "persona", label: "Personas" },
-  { key: "image", label: "Scenes" }
+const TABS: { key: ModeKey; labelKey: "tab.personas" | "tab.scenes" }[] = [
+  { key: "persona", labelKey: "tab.personas" },
+  { key: "image", labelKey: "tab.scenes" }
 ]
 
 export const ModeTabs: FC<Props> = ({ active, onChange }) => {
+  const { t } = useI18n()
+
   return (
     <div className="px-4 pt-3">
       <div className="flex rounded-lg bg-gray-100 p-0.5 dark:bg-gray-800">
@@ -33,7 +36,7 @@ export const ModeTabs: FC<Props> = ({ active, onChange }) => {
                   : "text-gray-500 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
               }`}
             >
-              {tab.label}
+              {t(tab.labelKey)}
             </button>
           )
         })}

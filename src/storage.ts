@@ -1,5 +1,6 @@
 import { safeChromeCall } from "./lib/extension-context"
-import type { AppState, PersonaCard } from "./types"
+import { expandSeed, SEED_PERSONAS } from "./seed"
+import type { AppState, Locale, PersonaCard } from "./types"
 import { DEFAULT_APP_STATE } from "./types"
 
 /**
@@ -64,6 +65,37 @@ export async function setAppState(patch: Partial<AppState>): Promise<AppState> {
   const next = { ...cur, ...patch }
   await setRaw(KEY_APP_STATE, next)
   return next
+}
+
+/**
+ * Installs missing built-in personas and refreshes already-installed ones
+ * that the user hasn't customized (isCustomized), expanding seed content to
+ * `locale`. Called on bootstrap and again whenever the resolved locale
+ * changes, so flipping the language pref re-expands non-customized seeds in
+ * place — same stable ids, so activePersonaId/worldInfo enrich state/
+ * backgroundId never get orphaned by the switch. Cards the user edited via
+ * the options page are skipped entirely, preserving their content.
+ */
+export async function ensureSeeds(locale: Locale): Promise<PersonaCard[]> {
+  const existing = await listPersonas()
+  const existingById = new Map(existing.map((p) => [p.id, p]))
+  const now = Date.now()
+
+  const toInstall = SEED_PERSONAS.filter((seed) => {
+    const current = existingById.get(seed.id)
+    return !current || !current.isCustomized
+  }).map((seed) => {
+    const current = existingById.get(seed.id)
+    const expanded = expandSeed(seed, locale, now)
+    return current ? { ...expanded, createdAt: current.createdAt } : expanded
+  })
+
+  if (toInstall.length === 0) return existing
+
+  for (const card of toInstall) {
+    await upsertPersona(card)
+  }
+  return listPersonas()
 }
 
 export function makePersonaId(): string {

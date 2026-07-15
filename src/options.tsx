@@ -3,15 +3,17 @@ import { useEffect, useState } from "react"
 import "./style.css"
 
 import { BACKGROUND_PRESETS } from "~lib/backgrounds"
+import { useI18n, type MessageKey } from "~lib/i18n"
 import {
   deletePersona,
+  ensureSeeds,
   getPersona,
   listPersonas,
   makePersonaId,
   makeWorldInfoId,
   upsertPersona
 } from "~storage"
-import type { PersonaCard, WorldInfoEntry } from "~types"
+import type { LanguagePref, PersonaCard, WorldInfoEntry } from "~types"
 
 const INPUT_CLS =
   "w-full rounded-lg border border-gray-200 bg-gray-50/60 px-3 py-2 text-sm outline-none transition placeholder:text-gray-400 focus:border-persona-400 focus:bg-white focus:ring-2 focus:ring-persona-500/20 dark:border-gray-700 dark:bg-gray-800/80 dark:focus:border-persona-500 dark:focus:bg-gray-800"
@@ -33,13 +35,18 @@ const INPUT_CLS_SMALL =
  * at save time.
  */
 export default function Options() {
+  const { t, tp, locale, pref, setPref } = useI18n()
   const [personas, setPersonas] = useState<PersonaCard[]>([])
   const [editing, setEditing] = useState<PersonaCard | null>(null)
   const [worldInfoKeysDraft, setWorldInfoKeysDraft] = useState<Record<string, string>>({})
 
   useEffect(() => {
-    void refresh()
-  }, [])
+    // Installs missing seeds and refreshes non-customized ones to the
+    // current locale — same call PersonaPanel makes, so opening the options
+    // page first (before ever opening the DeepSeek overlay) still seeds the
+    // library, and flipping the language select below re-expands in place.
+    void ensureSeeds(locale).then(setPersonas)
+  }, [locale])
 
   async function refresh() {
     setPersonas(await listPersonas())
@@ -78,7 +85,7 @@ export default function Options() {
   async function save() {
     if (!editing) return
     if (!editing.name.trim() || !editing.personaPrompt.trim()) {
-      alert("Name and Persona prompt are required.")
+      alert(t("alert.nameRequired"))
       return
     }
 
@@ -96,7 +103,7 @@ export default function Options() {
   }
 
   async function remove(id: string) {
-    if (!confirm("Delete this persona?")) return
+    if (!confirm(t("confirm.delete"))) return
     await deletePersona(id)
     if (editing?.id === id) setEditing(null)
     await refresh()
@@ -146,16 +153,17 @@ export default function Options() {
                 }))
             : undefined,
           backgroundId: typeof card.backgroundId === "string" ? card.backgroundId : undefined,
-          tags: Array.isArray(card.tags) ? card.tags.filter((t) => typeof t === "string") : [],
+          tags: Array.isArray(card.tags) ? card.tags.filter((tag) => typeof tag === "string") : [],
+          isCustomized: true,
           createdAt: Date.now(),
           updatedAt: Date.now()
         })
         imported++
       }
       await refresh()
-      alert(imported > 0 ? `Imported ${imported} persona(s).` : "No valid personas found in file.")
+      alert(imported > 0 ? tp("alert.imported", imported) : t("alert.importNone"))
     } catch {
-      alert("Couldn't parse that file — expected a persona-chat JSON export.")
+      alert(t("alert.importParseError"))
     }
   }
 
@@ -189,20 +197,35 @@ export default function Options() {
       <div className="mx-auto max-w-4xl px-6 py-8">
         <header className="mb-6 flex items-center justify-between">
           <div>
-            <h1 className="flex items-center gap-2.5 text-2xl font-bold tracking-tight"><span className="h-3 w-3 rounded-full bg-gradient-to-br from-persona-400 to-persona-600" />Persona</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Your character library · stored locally
-            </p>
+            <h1 className="flex items-center gap-2.5 text-2xl font-bold tracking-tight">
+              <span className="h-3 w-3 rounded-full bg-gradient-to-br from-persona-400 to-persona-600" />
+              Persona
+            </h1>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{t("options.subtitle")}</p>
           </div>
           <div className="flex items-center gap-2">
+            <label className="sr-only" htmlFor="language-select">
+              {t("options.language")}
+            </label>
+            <select
+              id="language-select"
+              value={pref}
+              onChange={(e) => void setPref(e.target.value as LanguagePref)}
+              className="rounded-lg border border-gray-200 bg-white px-2.5 py-2 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
+              title={t("options.language")}
+            >
+              <option value="auto">{t("lang.auto")}</option>
+              <option value="en">{t("lang.en")}</option>
+              <option value="zh">{t("lang.zh")}</option>
+            </select>
             <button
               onClick={exportAll}
               className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800"
             >
-              Export
+              {t("options.export")}
             </button>
             <label className="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800">
-              Import
+              {t("options.import")}
               <input
                 type="file"
                 accept="application/json,.json"
@@ -218,7 +241,7 @@ export default function Options() {
               onClick={startCreate}
               className="rounded-lg bg-persona-600 px-4 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-persona-700"
             >
-              + New persona
+              {t("options.new")}
             </button>
           </div>
         </header>
@@ -226,7 +249,7 @@ export default function Options() {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <section>
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
-              Personas ({personas.length})
+              {t("options.listHeading", { count: personas.length })}
             </h2>
             <ul className="space-y-2">
               {personas.map((p) => (
@@ -243,7 +266,7 @@ export default function Options() {
                       </div>
                       {(p.worldInfo?.length ?? 0) > 0 && (
                         <div className="mt-1 text-[10px] text-persona-600">
-                          📖 {p.worldInfo!.length} world info {p.worldInfo!.length === 1 ? "entry" : "entries"}
+                          {tp("options.worldInfoCount", p.worldInfo!.length)}
                         </div>
                       )}
                     </div>
@@ -252,13 +275,13 @@ export default function Options() {
                         onClick={() => startEdit(p.id)}
                         className="rounded px-2 py-1 text-xs text-persona-600 hover:bg-persona-50 dark:hover:bg-gray-800"
                       >
-                        Edit
+                        {t("common.edit")}
                       </button>
                       <button
                         onClick={() => remove(p.id)}
                         className="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-gray-800"
                       >
-                        Delete
+                        {t("common.delete")}
                       </button>
                     </div>
                   </div>
@@ -266,7 +289,7 @@ export default function Options() {
               ))}
               {personas.length === 0 && (
                 <li className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400 dark:border-gray-700">
-                  No personas yet. Click "+ New persona" to start.
+                  {t("options.listEmpty")}
                 </li>
               )}
             </ul>
@@ -274,18 +297,18 @@ export default function Options() {
 
           <section>
             <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
-              {editing ? "Editor" : "Preview"}
+              {editing ? t("options.editorHeading") : t("options.previewHeading")}
             </h2>
             {editing ? (
               <div className="space-y-3.5 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-                <FormField label="Name">
+                <FormField label={t("field.name")}>
                   <input
                     value={editing.name}
                     onChange={(e) => setEditing({ ...editing, name: e.target.value })}
                     className={INPUT_CLS}
                   />
                 </FormField>
-                <FormField label="Avatar emoji">
+                <FormField label={t("field.avatar")}>
                   <input
                     value={editing.avatarEmoji}
                     onChange={(e) =>
@@ -294,7 +317,7 @@ export default function Options() {
                     className="w-24 rounded-lg border border-gray-200 bg-gray-50/60 px-3 py-2 text-lg outline-none transition focus:border-persona-400 focus:bg-white focus:ring-2 focus:ring-persona-500/20 dark:border-gray-700 dark:bg-gray-800/80 dark:focus:border-persona-500 dark:focus:bg-gray-800"
                   />
                 </FormField>
-                <FormField label="Persona prompt (personality)">
+                <FormField label={t("field.personaPrompt")}>
                   <textarea
                     value={editing.personaPrompt}
                     onChange={(e) =>
@@ -304,7 +327,7 @@ export default function Options() {
                     className={INPUT_CLS}
                   />
                 </FormField>
-                <FormField label="Scenario (optional) — the setting/situation">
+                <FormField label={t("field.scenario")}>
                   <textarea
                     value={editing.scenario ?? ""}
                     onChange={(e) => setEditing({ ...editing, scenario: e.target.value })}
@@ -312,18 +335,18 @@ export default function Options() {
                     className={INPUT_CLS}
                   />
                 </FormField>
-                <FormField label="Example dialogue (optional) — locks voice/style">
+                <FormField label={t("field.exampleDialogue")}>
                   <textarea
                     value={editing.exampleDialogue ?? ""}
                     onChange={(e) =>
                       setEditing({ ...editing, exampleDialogue: e.target.value })
                     }
                     rows={3}
-                    placeholder={"User: ...\nCharacter: ..."}
+                    placeholder={t("placeholder.exampleDialogue")}
                     className={INPUT_CLS}
                   />
                 </FormField>
-                <FormField label="Greeting (optional)">
+                <FormField label={t("field.greeting")}>
                   <input
                     value={editing.greeting ?? ""}
                     onChange={(e) =>
@@ -332,7 +355,7 @@ export default function Options() {
                     className={INPUT_CLS}
                   />
                 </FormField>
-                <FormField label="In-character reminder (optional) — resurfaces every few enrich-taps to fight drift">
+                <FormField label={t("field.driftReminder")}>
                   <input
                     value={editing.driftReminder ?? ""}
                     onChange={(e) =>
@@ -341,7 +364,7 @@ export default function Options() {
                     className={INPUT_CLS}
                   />
                 </FormField>
-                <FormField label="Background (optional)">
+                <FormField label={t("field.background")}>
                   <select
                     value={editing.backgroundId ?? ""}
                     onChange={(e) =>
@@ -349,10 +372,13 @@ export default function Options() {
                     }
                     className={INPUT_CLS}
                   >
-                    <option value="">None</option>
+                    <option value="">{t("select.none")}</option>
                     {BACKGROUND_PRESETS.map((preset) => (
                       <option key={preset.id} value={preset.id}>
-                        {preset.label} ({preset.category})
+                        {t("options.backgroundOption", {
+                          label: t(`bg.${preset.id}` as MessageKey),
+                          category: t(`bgCategory.${preset.category}` as MessageKey)
+                        })}
                       </option>
                     ))}
                   </select>
@@ -361,13 +387,13 @@ export default function Options() {
                 <div>
                   <div className="mb-1 flex items-center justify-between">
                     <div className="text-xs font-medium text-gray-600 dark:text-gray-400">
-                      World Info (optional) — keywords that surface lore on "✨ Enrich"
+                      {t("options.worldInfoLabel")}
                     </div>
                     <button
                       onClick={addWorldInfoRow}
                       className="rounded px-2 py-0.5 text-xs text-persona-600 hover:bg-persona-50 dark:hover:bg-gray-800"
                     >
-                      + Add entry
+                      {t("options.addEntry")}
                     </button>
                   </div>
                   <div className="space-y-2">
@@ -385,13 +411,13 @@ export default function Options() {
                                 [entry.id]: e.target.value
                               }))
                             }
-                            placeholder="keys, comma, separated"
+                            placeholder={t("placeholder.keys")}
                             className={"flex-1 " + INPUT_CLS_SMALL}
                           />
                           <button
                             onClick={() => removeWorldInfoRow(entry.id)}
                             className="rounded px-1.5 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-gray-800"
-                            aria-label="Remove entry"
+                            aria-label={t("common.delete")}
                           >
                             ✕
                           </button>
@@ -400,13 +426,13 @@ export default function Options() {
                           value={entry.content}
                           onChange={(e) => updateWorldInfoContent(entry.id, e.target.value)}
                           rows={2}
-                          placeholder="Lore to inject when a key matches the draft message"
+                          placeholder={t("placeholder.loreContent")}
                           className={INPUT_CLS_SMALL}
                         />
                       </div>
                     ))}
                     {(editing.worldInfo ?? []).length === 0 && (
-                      <p className="text-xs text-gray-400">No entries yet.</p>
+                      <p className="text-xs text-gray-400">{t("options.noEntries")}</p>
                     )}
                   </div>
                 </div>
@@ -416,19 +442,19 @@ export default function Options() {
                     onClick={save}
                     className="rounded-lg bg-persona-600 px-4 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-persona-700"
                   >
-                    Save
+                    {t("common.save")}
                   </button>
                   <button
                     onClick={() => setEditing(null)}
                     className="rounded-lg border border-gray-200 px-4 py-2 text-xs font-medium text-gray-600 transition hover:bg-gray-50 dark:border-gray-700 dark:text-gray-300 dark:hover:bg-gray-800"
                   >
-                    Cancel
+                    {t("common.cancel")}
                   </button>
                 </div>
               </div>
             ) : (
               <div className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400 dark:border-gray-700">
-                Select a persona to edit, or click "+ New persona".
+                {t("options.previewEmpty")}
               </div>
             )}
           </section>

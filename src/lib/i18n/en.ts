@@ -1,0 +1,143 @@
+/**
+ * Canonical key set. zh.ts is typed against `Messages` (derived from this
+ * file), so a missing or extra key over there is a compile error.
+ */
+export const en = {
+  // ---- persona-message.ts (model-facing wrapper) ----
+  "wrap.intro":
+    "From now on, please act as the following persona and stay in character for the rest of our conversation:",
+  "wrap.scenario": "Scenario:",
+  "wrap.example": "Example of how you speak in character:",
+  "wrap.ackGreeting": 'When you acknowledge, respond in character with: "{greeting}"',
+  "wrap.ackPlain": "Acknowledge briefly in character, then wait for my first question.",
+
+  // ---- use-persona-enrich.ts ----
+  "enrich.failed": "Couldn't enrich — try refreshing DeepSeek.",
+  "enrich.nothingYet": "Nothing to enrich yet.",
+  "enrich.nothingNew": "Nothing new — send as-is.",
+  "enrich.loreNote.one": "{count} lore note",
+  "enrich.loreNote.other": "{count} lore notes",
+  "enrich.reminder": "in-character reminder",
+  "enrich.added": "Added {parts}. Press Enter to send.",
+
+  // ---- contents/deepseek.tsx ----
+  "pill.enrich": "Enrich",
+
+  // ---- FloatingButton.tsx ----
+  "fab.open": "Open Persona panel",
+  "fab.close": "Close Persona panel",
+
+  // ---- common (shared across components) ----
+  "common.close": "Close",
+  "common.loading": "Loading…",
+  "common.active": "Active",
+  "common.edit": "Edit",
+  "common.delete": "Delete",
+  "common.save": "Save",
+  "common.cancel": "Cancel",
+
+  // ---- PersonaPanel.tsx ----
+  "panel.deactivate": "Deactivate",
+  "panel.updatedTitle": "Extension was updated",
+  "panel.updatedBody": "Refresh the page to reconnect — your personas are safe.",
+  "panel.refreshPage": "Refresh page",
+  "toast.deactivated": "Persona deactivated. Start a new chat for a clean slate.",
+  "toast.ready": "Persona ready — press Enter to send.",
+  "toast.clipboard": "Copied to clipboard — paste into the chat to activate.",
+  "toast.injectFailed": "Couldn't reach the chat input. Try refreshing the page.",
+
+  // ---- ModeTabs.tsx ----
+  "tab.personas": "Personas",
+  "tab.scenes": "Scenes",
+
+  // ---- PersonaList.tsx ----
+  "list.searchPlaceholder": "Search personas…",
+  "list.emptyTitle": "No personas yet",
+  "list.emptyBody": "Create one from the options page.",
+  "list.worldInfoTitle.one": "{count} world info entry",
+  "list.worldInfoTitle.other": "{count} world info entries",
+  "list.apply": "Apply →",
+  "list.noMatch": 'No personas match "{query}".',
+
+  // ---- BackgroundPicker.tsx ----
+  "bg.blurb": "Sets the scene behind the chat. Purely visual — never touches what gets sent.",
+  "bg.none": "None",
+
+  // ---- popup.tsx ----
+  "popup.activeOn": "Active on chat.deepseek.com",
+  "popup.hint": "Open chat.deepseek.com — the Persona button appears bottom-right.",
+  "popup.manage": "Manage personas",
+
+  // ---- options.tsx ----
+  "options.subtitle": "Your character library · stored locally",
+  "options.export": "Export",
+  "options.import": "Import",
+  "options.new": "+ New persona",
+  "options.listHeading": "Personas ({count})",
+  "options.worldInfoCount.one": "📖 {count} world info entry",
+  "options.worldInfoCount.other": "📖 {count} world info entries",
+  "options.listEmpty": 'No personas yet. Click "+ New persona" to start.',
+  "options.editorHeading": "Editor",
+  "options.previewHeading": "Preview",
+  "field.name": "Name",
+  "field.avatar": "Avatar emoji",
+  "field.personaPrompt": "Persona prompt (personality)",
+  "field.scenario": "Scenario (optional) — the setting/situation",
+  "field.exampleDialogue": "Example dialogue (optional) — locks voice/style",
+  "field.greeting": "Greeting (optional)",
+  "field.driftReminder":
+    "In-character reminder (optional) — resurfaces every few enrich-taps to fight drift",
+  "field.background": "Background (optional)",
+  "placeholder.exampleDialogue": "User: ...\nCharacter: ...",
+  "placeholder.keys": "keys, comma, separated",
+  "placeholder.loreContent": "Lore to inject when a key matches the draft message",
+  "options.worldInfoLabel": 'World Info (optional) — keywords that surface lore on "✨ Enrich"',
+  "options.addEntry": "+ Add entry",
+  "options.noEntries": "No entries yet.",
+  "options.previewEmpty": 'Select a persona to edit, or click "+ New persona".',
+  "alert.nameRequired": "Name and Persona prompt are required.",
+  "confirm.delete": "Delete this persona?",
+  "alert.imported.one": "Imported {count} persona.",
+  "alert.imported.other": "Imported {count} personas.",
+  "alert.importNone": "No valid personas found in file.",
+  "alert.importParseError":
+    "Couldn't parse that file — expected a persona-chat JSON export.",
+  "select.none": "None",
+  "options.backgroundOption": "{label} ({category})",
+  "options.language": "Language",
+  "lang.auto": "Auto (browser)",
+  "lang.en": "English",
+  "lang.zh": "中文",
+
+  // ---- tag labels ----
+  "tag.work": "Work",
+  "tag.fun": "Fun",
+  "tag.productivity": "Productivity",
+  "tag.writing": "Writing",
+  "tag.product": "Product",
+  "tag.thinking": "Thinking",
+  "tag.language": "Language",
+  "tag.career": "Career",
+  "tag.philosophy": "Philosophy",
+  "tag.roleplay": "Roleplay",
+  "tag.companion": "Companion",
+
+  // ---- background preset labels & categories ----
+  "bg.bg_slate_focus": "Slate Focus",
+  "bg.bg_paper_desk": "Paper Desk",
+  "bg.bg_midnight_terminal": "Midnight Terminal",
+  "bg.bg_sunset_pop": "Sunset Pop",
+  "bg.bg_candy": "Candy",
+  "bg.bg_late_night_bar": "Late Night Bar",
+  "bg.bg_warm_lamp": "Warm Lamp",
+  "bg.bg_diary_pastel": "Diary Pastel",
+  "bg.bg_retro_quest": "Retro Quest",
+  "bg.bg_deduction_fog": "Deduction Fog",
+  "bg.bg_marble_hall": "Marble Hall",
+  "bg.bg_zen_ink": "Zen Ink",
+  "bgCategory.work": "work",
+  "bgCategory.fun": "fun",
+  "bgCategory.companion": "companion",
+  "bgCategory.roleplay": "roleplay",
+  "bgCategory.philosophy": "philosophy"
+} as const

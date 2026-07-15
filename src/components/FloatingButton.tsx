@@ -1,5 +1,7 @@
 import type { FC } from "react"
 
+import { useI18n } from "../lib/i18n"
+
 interface Props {
   open: boolean
   /** Emoji of the active persona; shown on the button so the user can tell
@@ -9,12 +11,13 @@ interface Props {
 }
 
 export const FloatingButton: FC<Props> = ({ open, activeEmoji, onClick }) => {
+  const { t } = useI18n()
   const hasActive = !!activeEmoji && !open
 
   return (
     <button
       onClick={onClick}
-      aria-label={open ? "Close Persona panel" : "Open Persona panel"}
+      aria-label={open ? t("fab.close") : t("fab.open")}
       className={`fixed bottom-6 right-6 z-[999999] flex h-12 w-12 items-center justify-center rounded-full shadow-lg shadow-persona-600/25 transition-all duration-200 hover:scale-105 active:scale-95 ${
         hasActive
           ? "bg-white ring-2 ring-persona-500 dark:bg-gray-800"

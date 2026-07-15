@@ -2,15 +2,10 @@ import { useEffect, useState, type FC } from "react"
 
 import { getActiveAdapter, type InjectResult } from "../lib/adapters"
 import { extensionContext } from "../lib/extension-context"
+import { useI18n } from "../lib/i18n"
 import { buildPersonaMessage } from "../lib/persona-message"
-import {
-  getAppState,
-  listPersonas,
-  setAppState,
-  upsertPersona
-} from "../storage"
-import { SEED_PERSONAS } from "../seed"
-import type { AppState, ModeKey, PersonaCard } from "../types"
+import { ensureSeeds, getAppState, setAppState } from "../storage"
+import type { AppState, Locale, ModeKey, PersonaCard } from "../types"
 import { BackgroundPicker } from "./BackgroundPicker"
 import { ModeTabs } from "./ModeTabs"
 import { PersonaList } from "./PersonaList"
@@ -21,12 +16,12 @@ import { PersonaList } from "./PersonaList"
  * input can't be located (DOM change, unknown UI variant, or unsupported
  * host).
  */
-async function applyPersona(persona: PersonaCard): Promise<InjectResult> {
+async function applyPersona(persona: PersonaCard, locale: Locale): Promise<InjectResult> {
   const adapter = getActiveAdapter()
   if (!adapter) {
     return { ok: false, method: "clipboard-fallback", error: "unsupported_host" }
   }
-  const message = buildPersonaMessage(persona)
+  const message = buildPersonaMessage(persona, locale)
   return await adapter.injectText(message)
 }
 
@@ -46,48 +41,28 @@ const CloseIcon: FC = () => (
 )
 
 export const PersonaPanel: FC<Props> = ({ onClose }) => {
+  const { t, locale } = useI18n()
   const [state, setState] = useState<AppState | null>(null)
   const [personas, setPersonas] = useState<PersonaCard[]>([])
   const [toast, setToast] = useState<string | null>(null)
   const [contextInvalidated, setContextInvalidated] = useState(false)
 
   useEffect(() => {
-    // Subscribe first so bootstrap() failures caused by context death
-    // route through the banner instead of surfacing as blank state.
+    // Subscribe first so a context death while loading routes through the
+    // banner instead of surfacing as blank state.
     const unsubscribe = extensionContext.subscribe(setContextInvalidated)
-    void bootstrap()
+    void getAppState().then(setState)
     return unsubscribe
   }, [])
 
-  async function bootstrap() {
-    const [initState, initPersonas] = await Promise.all([getAppState(), listPersonas()])
-    setState(initState)
-
-    // Incremental seed install: add missing built-ins, and refresh any
-    // already-installed seed the user hasn't customized (so shipping new
-    // seed content — new scenario/worldInfo/etc. fields — reaches existing
-    // installs instead of freezing at whatever shape was first installed).
-    // User-edited or user-created personas (isCustomized) are never touched.
-    // Trade-off: a seed persona deleted by the user re-appears on next boot;
-    // v0.2 can track deleted seed ids to make deletion sticky.
-    const existingById = new Map(initPersonas.map((p) => [p.id, p]))
-    const toInstall = SEED_PERSONAS.filter((seed) => {
-      const existing = existingById.get(seed.id)
-      return !existing || !existing.isCustomized
-    }).map((seed) => {
-      const existing = existingById.get(seed.id)
-      return existing ? { ...seed, createdAt: existing.createdAt } : seed
-    })
-
-    if (toInstall.length > 0) {
-      for (const seed of toInstall) {
-        await upsertPersona(seed)
-      }
-      setPersonas(await listPersonas())
-    } else {
-      setPersonas(initPersonas)
-    }
-  }
+  useEffect(() => {
+    // Installs missing seeds and refreshes non-customized ones to the
+    // current locale. Re-running on every `locale` change (not just mount)
+    // is what makes flipping the language pref re-expand already-installed
+    // seed personas in place instead of freezing at whichever language they
+    // were first installed in.
+    void ensureSeeds(locale).then(setPersonas)
+  }, [locale])
 
   async function handleModeChange(mode: ModeKey) {
     const next = await setAppState({ activeMode: mode })
@@ -102,7 +77,7 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
   async function handleDeactivate() {
     const next = await setAppState({ activePersonaId: null, activeBackgroundId: null })
     setState(next)
-    showToast("Persona deactivated. Start a new chat for a clean slate.")
+    showToast(t("toast.deactivated"))
   }
 
   function showToast(message: string) {
@@ -111,7 +86,7 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
   }
 
   async function handleApply(persona: PersonaCard) {
-    const result = await applyPersona(persona)
+    const result = await applyPersona(persona, locale)
     const next = await setAppState({
       activePersonaId: persona.id,
       ...(persona.backgroundId ? { activeBackgroundId: persona.backgroundId } : {})
@@ -119,11 +94,11 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
     setState(next)
 
     if (result.ok && result.method === "dom-injection") {
-      showToast("Persona ready — press Enter to send.")
+      showToast(t("toast.ready"))
     } else if (result.ok && result.method === "clipboard-fallback") {
-      showToast("Copied to clipboard — paste into the chat to activate.")
+      showToast(t("toast.clipboard"))
     } else {
-      showToast("Couldn't reach the chat input. Try refreshing the page.")
+      showToast(t("toast.injectFailed"))
     }
   }
 
@@ -135,7 +110,7 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
           <button
             onClick={onClose}
             className="rounded-md p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-            aria-label="Close"
+            aria-label={t("common.close")}
           >
             <CloseIcon />
           </button>
@@ -144,15 +119,15 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
           <div className="mb-3 flex h-10 w-10 items-center justify-center rounded-full bg-persona-50 text-lg dark:bg-gray-800">
             ↻
           </div>
-          <div className="mb-1 text-sm font-medium">Extension was updated</div>
+          <div className="mb-1 text-sm font-medium">{t("panel.updatedTitle")}</div>
           <p className="mb-4 max-w-[240px] text-xs leading-relaxed text-gray-500 dark:text-gray-400">
-            Refresh the page to reconnect — your personas are safe.
+            {t("panel.updatedBody")}
           </p>
           <button
             onClick={() => window.location.reload()}
             className="rounded-lg bg-persona-600 px-4 py-2 text-xs font-medium text-white transition hover:bg-persona-700"
           >
-            Refresh page
+            {t("panel.refreshPage")}
           </button>
         </div>
       </div>
@@ -162,7 +137,7 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
   if (!state) {
     return (
       <div className="flex items-center justify-center p-8 font-sans">
-        <span className="text-xs text-gray-400">Loading…</span>
+        <span className="text-xs text-gray-400">{t("common.loading")}</span>
       </div>
     )
   }
@@ -183,7 +158,7 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
         <button
           onClick={onClose}
           className="rounded-md p-1.5 text-gray-400 transition hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-          aria-label="Close"
+          aria-label={t("common.close")}
         >
           <CloseIcon />
         </button>
@@ -200,13 +175,15 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
             <div className="truncate text-xs font-medium text-gray-900 dark:text-gray-100">
               {activePersona.name}
             </div>
-            <div className="text-[10px] text-persona-600 dark:text-persona-300">Active</div>
+            <div className="text-[10px] text-persona-600 dark:text-persona-300">
+              {t("common.active")}
+            </div>
           </div>
           <button
             onClick={handleDeactivate}
             className="rounded-md px-2 py-1 text-[10px] font-medium text-gray-500 transition hover:bg-white hover:text-gray-800 hover:shadow-sm dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
           >
-            Deactivate
+            {t("panel.deactivate")}
           </button>
         </div>
       )}

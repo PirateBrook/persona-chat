@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import "./style.css"
 
+import { useI18n } from "~lib/i18n"
 import { getAppState, getPersona } from "~storage"
 import type { PersonaCard } from "~types"
 
@@ -12,6 +13,7 @@ import type { PersonaCard } from "~types"
  * switching tabs.
  */
 export default function Popup() {
+  const { t } = useI18n()
   const [activePersona, setActivePersona] = useState<PersonaCard | null>(null)
   const [loaded, setLoaded] = useState(false)
 
@@ -41,14 +43,13 @@ export default function Popup() {
             <div className="truncate text-sm font-medium">{activePersona.name}</div>
             <div className="flex items-center gap-1 text-[10px] text-persona-600 dark:text-persona-300">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-              Active on chat.deepseek.com
+              {t("popup.activeOn")}
             </div>
           </div>
         </div>
       ) : (
         <div className="mb-4 rounded-xl bg-gray-50 p-3 text-xs leading-relaxed text-gray-600 dark:bg-gray-800 dark:text-gray-300">
-          Open <span className="font-semibold text-gray-900 dark:text-gray-100">chat.deepseek.com</span>{" "}
-          — the Persona button appears bottom-right.
+          {t("popup.hint")}
         </div>
       )}
 
@@ -56,7 +57,7 @@ export default function Popup() {
         onClick={() => chrome.runtime.openOptionsPage()}
         className="w-full rounded-lg bg-persona-600 py-2 text-xs font-medium text-white transition hover:bg-persona-700"
       >
-        Manage personas
+        {t("popup.manage")}
       </button>
     </div>
   )

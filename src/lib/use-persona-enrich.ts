@@ -2,6 +2,7 @@ import { useEffect, useRef } from "react"
 
 import type { PersonaCard } from "../types"
 import { getActiveAdapter } from "./adapters"
+import type { I18n } from "./i18n"
 import { composeEnrichedMessage, matchWorldInfo } from "./world-info"
 
 const DRIFT_INTERVAL = 6
@@ -72,19 +73,20 @@ export function usePersonaEnrich(activePersona: PersonaCard | null) {
   return { enrich }
 }
 
-export function describeEnrichOutcome(outcome: EnrichOutcome): string {
+export function describeEnrichOutcome(
+  outcome: EnrichOutcome,
+  { t, tp }: Pick<I18n, "t" | "tp">
+): string {
   if (!outcome.ok) {
-    return outcome.reason === "inject-failed"
-      ? "Couldn't enrich — try refreshing DeepSeek."
-      : "Nothing to enrich yet."
+    return outcome.reason === "inject-failed" ? t("enrich.failed") : t("enrich.nothingYet")
   }
   if (outcome.addedLoreCount === 0 && !outcome.addedDrift) {
-    return "Nothing new — send as-is."
+    return t("enrich.nothingNew")
   }
   const parts: string[] = []
   if (outcome.addedLoreCount > 0) {
-    parts.push(`${outcome.addedLoreCount} lore note${outcome.addedLoreCount > 1 ? "s" : ""}`)
+    parts.push(tp("enrich.loreNote", outcome.addedLoreCount))
   }
-  if (outcome.addedDrift) parts.push("in-character reminder")
-  return `Added ${parts.join(" + ")}. Press Enter to send.`
+  if (outcome.addedDrift) parts.push(t("enrich.reminder"))
+  return t("enrich.added", { parts: parts.join(" + ") })
 }

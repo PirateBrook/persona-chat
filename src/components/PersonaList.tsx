@@ -1,6 +1,7 @@
 import { useMemo, useState, type FC } from "react"
 
-import type { PersonaCard } from "../types"
+import { getMessages, useI18n } from "../lib/i18n"
+import type { Locale, PersonaCard } from "../types"
 
 interface Props {
   personas: PersonaCard[]
@@ -8,14 +9,23 @@ interface Props {
   onApply: (persona: PersonaCard) => void
 }
 
+/** Tags are stored as stable English keys (filtering/search logic depends on
+ *  them); only the displayed label is localized. Unknown/user-created tags
+ *  fall back to the raw key rather than crashing on a missing dict entry. */
+function tagLabel(locale: Locale, tag: string): string {
+  const dict = getMessages(locale) as Record<string, string>
+  return dict[`tag.${tag}`] ?? tag
+}
+
 export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) => {
+  const { t, tp, locale } = useI18n()
   const [query, setQuery] = useState("")
   const [tagFilter, setTagFilter] = useState<string | null>(null)
 
   const allTags = useMemo(() => {
     const counts = new Map<string, number>()
     for (const p of personas) {
-      for (const t of p.tags) counts.set(t, (counts.get(t) ?? 0) + 1)
+      for (const tag of p.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1)
     }
     // Most-used tags first so the chip row stays scannable as the library grows.
     return Array.from(counts.entries())
@@ -31,7 +41,7 @@ export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) =
       return (
         p.name.toLowerCase().includes(q) ||
         p.personaPrompt.toLowerCase().includes(q) ||
-        p.tags.some((t) => t.toLowerCase().includes(q))
+        p.tags.some((tag) => tag.toLowerCase().includes(q))
       )
     })
   }, [personas, query, tagFilter])
@@ -41,11 +51,9 @@ export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) =
       <div className="px-6 py-10 text-center">
         <div className="mb-2 text-2xl">🎭</div>
         <p className="mb-1 text-sm font-medium text-gray-800 dark:text-gray-200">
-          No personas yet
+          {t("list.emptyTitle")}
         </p>
-        <p className="text-xs text-gray-500 dark:text-gray-400">
-          Create one from the options page.
-        </p>
+        <p className="text-xs text-gray-500 dark:text-gray-400">{t("list.emptyBody")}</p>
       </div>
     )
   }
@@ -56,7 +64,7 @@ export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) =
         <input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Search personas…"
+          placeholder={t("list.searchPlaceholder")}
           className="w-full rounded-lg border border-gray-200 bg-gray-50/80 px-3 py-2 text-xs text-gray-900 outline-none transition placeholder:text-gray-400 focus:border-persona-400 focus:bg-white focus:ring-2 focus:ring-persona-500/20 dark:border-gray-700 dark:bg-gray-800/80 dark:text-gray-100 dark:focus:border-persona-500 dark:focus:bg-gray-800"
         />
         {allTags.length > 0 && (
@@ -73,7 +81,7 @@ export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) =
                       : "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
                   }`}
                 >
-                  {tag}
+                  {tagLabel(locale, tag)}
                 </button>
               )
             })}
@@ -112,7 +120,7 @@ export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) =
                     {(p.worldInfo?.length ?? 0) > 0 && (
                       <span
                         className="text-[10px] opacity-60"
-                        title={`${p.worldInfo!.length} world info entries`}
+                        title={tp("list.worldInfoTitle", p.worldInfo!.length)}
                       >
                         📖
                       </span>
@@ -125,11 +133,11 @@ export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) =
                 </div>
                 {isActive ? (
                   <span className="shrink-0 rounded-full bg-persona-600 px-2 py-0.5 text-[10px] font-medium text-white">
-                    Active
+                    {t("common.active")}
                   </span>
                 ) : (
                   <span className="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-medium text-persona-600 opacity-0 transition group-hover:opacity-100 dark:text-persona-300">
-                    Apply →
+                    {t("list.apply")}
                   </span>
                 )}
               </button>
@@ -138,7 +146,7 @@ export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) =
         })}
         {visible.length === 0 && (
           <li className="px-4 py-8 text-center text-xs text-gray-400">
-            No personas match “{query || tagFilter}”.
+            {t("list.noMatch", { query: query || tagFilter || "" })}
           </li>
         )}
       </ul>

@@ -5,6 +5,7 @@ import { useEffect, useState } from "react"
 import { FloatingButton } from "~components/FloatingButton"
 import { PersonaPanel } from "~components/PersonaPanel"
 import { applyBackground } from "~lib/backgrounds"
+import { useI18n } from "~lib/i18n"
 import { describeEnrichOutcome, usePersonaEnrich } from "~lib/use-persona-enrich"
 import { getAppState, getPersona } from "~storage"
 import type { PersonaCard } from "~types"
@@ -31,6 +32,7 @@ export const getStyle: PlasmoGetStyle = () => {
  * matching without requiring the panel to be open.
  */
 export default function DeepSeekOverlay() {
+  const { t, tp } = useI18n()
   const [open, setOpen] = useState(false)
   const [activePersona, setActivePersona] = useState<PersonaCard | null>(null)
   const [pillToast, setPillToast] = useState<string | null>(null)
@@ -74,7 +76,7 @@ export default function DeepSeekOverlay() {
 
   async function handleEnrich() {
     const outcome = await enrich()
-    setPillToast(describeEnrichOutcome(outcome))
+    setPillToast(describeEnrichOutcome(outcome, { t, tp }))
     setTimeout(() => setPillToast(null), 3000)
   }
 
@@ -94,7 +96,7 @@ export default function DeepSeekOverlay() {
           onClick={handleEnrich}
           className="fixed bottom-[4.6rem] right-6 z-[999999] flex h-9 items-center gap-1.5 rounded-full border border-gray-200/80 bg-white/95 px-3.5 text-[11px] font-medium text-gray-700 shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200"
         >
-          <span aria-hidden>✨</span> Enrich
+          <span aria-hidden>✨</span> {t("pill.enrich")}
         </button>
       )}
 
