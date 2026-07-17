@@ -97,7 +97,7 @@ export const BackgroundPicker: FC<Props> = ({
                   }`}
                 >
                   <div
-                    className="aspect-[4/3] w-full"
+                    className="aspect-[4/3] w-full bg-cover bg-center bg-no-repeat"
                     style={{ backgroundImage: getSwatchCss(customBackgroundToPreset(custom), theme) }}
                     aria-hidden
                   />
@@ -154,7 +154,7 @@ export const BackgroundPicker: FC<Props> = ({
               }`}
             >
               <div
-                className="aspect-[4/3] w-full"
+                className="aspect-[4/3] w-full bg-cover bg-center bg-no-repeat"
                 style={{ backgroundImage: getSwatchCss(preset, theme) }}
                 aria-hidden
               />

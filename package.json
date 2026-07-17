@@ -2,7 +2,7 @@
   "name": "persona-chat",
   "displayName": "Persona.chat",
   "version": "0.0.1",
-  "description": "Give your AI a persona. One-click persona switching for DeepSeek, ChatGPT, and Claude.",
+  "description": "Give your AI a persona. One-click persona switching, world info, and scene backgrounds for chat.deepseek.com.",
   "author": "punkscosmos.com",
   "private": true,
   "scripts": {
@@ -29,9 +29,7 @@
   },
   "manifest": {
     "host_permissions": [
-      "https://chat.deepseek.com/*",
-      "https://chatgpt.com/*",
-      "https://claude.ai/*"
+      "https://chat.deepseek.com/*"
     ],
     "permissions": [
       "storage",
