@@ -97,14 +97,18 @@ export const PersonaList: FC<Props> = ({ personas, activePersonaId, onApply }) =
                 }`}
               >
                 <span
-                  className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-lg leading-none transition ${
+                  className={`flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full text-lg leading-none transition ${
                     isActive
                       ? "bg-white shadow-sm ring-1 ring-persona-300 dark:bg-gray-800 dark:ring-persona-700"
                       : "bg-gray-100 group-hover:bg-white group-hover:shadow-sm dark:bg-gray-800"
                   }`}
                   aria-hidden
                 >
-                  {p.avatarEmoji || "🎭"}
+                  {p.avatarImageDataUrl ? (
+                    <img src={p.avatarImageDataUrl} alt="" className="h-full w-full object-cover" />
+                  ) : (
+                    p.avatarEmoji || "🎭"
+                  )}
                 </span>
                 <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-1.5">

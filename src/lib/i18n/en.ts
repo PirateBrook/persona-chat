@@ -150,5 +150,16 @@ export const en = {
   "bgCategory.fun": "fun",
   "bgCategory.companion": "companion",
   "bgCategory.roleplay": "roleplay",
-  "bgCategory.philosophy": "philosophy"
+  "bgCategory.philosophy": "philosophy",
+
+  // ---- character-card-import ----
+  "cardImport.button": "Import character card",
+  "cardImport.portraitHint": "Portrait imported from character card",
+  "cardImport.success": 'Imported "{name}".',
+  "cardImport.error.unsupported_file": "Only .png and .json character card files are supported.",
+  "cardImport.error.no_embedded_data":
+    "No character data found in that PNG — expected a chara/ccv3 tEXt chunk.",
+  "cardImport.error.invalid_json": "Couldn't parse the character card data as JSON.",
+  "cardImport.error.missing_name": "That character card has no name field.",
+  "cardImport.error.unknown": "Couldn't import that character card."
 } as const

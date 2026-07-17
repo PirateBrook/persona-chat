@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import "./style.css"
 
 import { BACKGROUND_PRESETS } from "~lib/backgrounds"
+import { CharacterCardImportError, parseCharacterCardFile } from "~lib/character-card-import"
 import { useI18n, type MessageKey } from "~lib/i18n"
 import { INPUT_BASE_CLS } from "~lib/styles"
 import { ensureSeeds } from "~seed"
@@ -165,6 +166,18 @@ export default function Options() {
     }
   }
 
+  async function importCharacterCard(file: File) {
+    try {
+      const card = await parseCharacterCardFile(file)
+      await upsertPersona(card)
+      await refresh()
+      alert(t("cardImport.success", { name: card.name }))
+    } catch (err) {
+      const reason = err instanceof CharacterCardImportError ? err.reason : "unknown"
+      alert(t(`cardImport.error.${reason}` as MessageKey))
+    }
+  }
+
   function addWorldInfoRow() {
     if (!editing) return
     const entry: WorldInfoEntry = { id: makeWorldInfoId(), keys: [], content: "", enabled: true }
@@ -235,6 +248,19 @@ export default function Options() {
                 }}
               />
             </label>
+            <label className="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-2 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800">
+              {t("cardImport.button")}
+              <input
+                type="file"
+                accept=".png,.json,image/png,application/json"
+                className="hidden"
+                onChange={(e) => {
+                  const file = e.target.files?.[0]
+                  if (file) void importCharacterCard(file)
+                  e.target.value = ""
+                }}
+              />
+            </label>
             <button
               onClick={startCreate}
               className="rounded-lg bg-persona-600 px-4 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-persona-700"
@@ -256,7 +282,15 @@ export default function Options() {
                   className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-sm transition hover:shadow dark:border-gray-800 dark:bg-gray-900"
                 >
                   <div className="flex items-start gap-3">
-                    <span className="text-2xl">{p.avatarEmoji}</span>
+                    {p.avatarImageDataUrl ? (
+                      <img
+                        src={p.avatarImageDataUrl}
+                        alt=""
+                        className="h-9 w-9 shrink-0 rounded-full object-cover"
+                      />
+                    ) : (
+                      <span className="text-2xl">{p.avatarEmoji}</span>
+                    )}
                     <div className="min-w-0 flex-1">
                       <div className="font-semibold">{p.name}</div>
                       <div className="mt-1 line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
@@ -307,13 +341,23 @@ export default function Options() {
                   />
                 </FormField>
                 <FormField label={t("field.avatar")}>
-                  <input
-                    value={editing.avatarEmoji}
-                    onChange={(e) =>
-                      setEditing({ ...editing, avatarEmoji: e.target.value })
-                    }
-                    className={`w-24 bg-gray-50/60 px-3 py-2 text-lg ${INPUT_BASE_CLS}`}
-                  />
+                  <div className="flex items-center gap-2">
+                    {editing.avatarImageDataUrl && (
+                      <img
+                        src={editing.avatarImageDataUrl}
+                        alt=""
+                        title={t("cardImport.portraitHint")}
+                        className="h-9 w-9 shrink-0 rounded-full object-cover"
+                      />
+                    )}
+                    <input
+                      value={editing.avatarEmoji}
+                      onChange={(e) =>
+                        setEditing({ ...editing, avatarEmoji: e.target.value })
+                      }
+                      className={`w-24 bg-gray-50/60 px-3 py-2 text-lg ${INPUT_BASE_CLS}`}
+                    />
+                  </div>
                 </FormField>
                 <FormField label={t("field.personaPrompt")}>
                   <textarea

@@ -145,5 +145,15 @@ export const zh: Messages = {
   "bgCategory.fun": "娱乐",
   "bgCategory.companion": "陪伴",
   "bgCategory.roleplay": "角色扮演",
-  "bgCategory.philosophy": "哲学"
+  "bgCategory.philosophy": "哲学",
+
+  // ---- character-card-import ----
+  "cardImport.button": "导入角色卡",
+  "cardImport.portraitHint": "从角色卡导入的头像",
+  "cardImport.success": "已导入「{name}」。",
+  "cardImport.error.unsupported_file": "仅支持 .png 和 .json 格式的角色卡文件。",
+  "cardImport.error.no_embedded_data": "在这张 PNG 里没找到角色数据——需要包含 chara/ccv3 的 tEXt 数据块。",
+  "cardImport.error.invalid_json": "无法解析角色卡里的数据，它不是合法的 JSON。",
+  "cardImport.error.missing_name": "这张角色卡没有名称字段。",
+  "cardImport.error.unknown": "导入这张角色卡失败。"
 }
