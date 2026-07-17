@@ -1,15 +1,17 @@
 import { safeChromeCall } from "./lib/extension-context"
-import type { AppState, PersonaCard } from "./types"
+import type { AppState, CustomBackground, PersonaCard } from "./types"
 import { DEFAULT_APP_STATE } from "./types"
 
 /**
  * Storage layout
  * - chrome.storage.local key "personas": Record<string, PersonaCard>
  * - chrome.storage.local key "appState": AppState
+ * - chrome.storage.local key "customBackgrounds": Record<string, CustomBackground>
  *
- * Long-form fields (worldInfo entries) currently live inline on the card.
- * When we outgrow the 10MB local quota (v1+), split heavy fields into
- * IndexedDB behind the same interface.
+ * Long-form fields (worldInfo entries, custom background data URLs) live
+ * inline. The `unlimitedStorage` permission lifts chrome.storage.local's
+ * default 10MB quota specifically so custom background images (base64,
+ * downscaled but still sizable) don't run into it.
  *
  * All chrome.storage calls flow through safeChromeCall so a stale content
  * script (extension was reloaded on a live tab) fails soft and lets the
@@ -18,6 +20,7 @@ import { DEFAULT_APP_STATE } from "./types"
 
 const KEY_PERSONAS = "personas"
 const KEY_APP_STATE = "appState"
+const KEY_CUSTOM_BACKGROUNDS = "customBackgrounds"
 
 async function getRaw<T>(key: string, fallback: T): Promise<T> {
   return safeChromeCall(async () => {
@@ -71,6 +74,36 @@ export async function deletePersona(id: string): Promise<void> {
   await setPersonaMap(map)
 }
 
+export async function getCustomBackgroundMap(): Promise<Record<string, CustomBackground>> {
+  return getRaw<Record<string, CustomBackground>>(KEY_CUSTOM_BACKGROUNDS, {})
+}
+
+export async function setCustomBackgroundMap(map: Record<string, CustomBackground>): Promise<void> {
+  await setRaw(KEY_CUSTOM_BACKGROUNDS, map)
+}
+
+export async function listCustomBackgrounds(): Promise<CustomBackground[]> {
+  const map = await getCustomBackgroundMap()
+  return Object.values(map).sort((a, b) => b.createdAt - a.createdAt)
+}
+
+export async function getCustomBackground(id: string): Promise<CustomBackground | null> {
+  const map = await getCustomBackgroundMap()
+  return map[id] ?? null
+}
+
+export async function upsertCustomBackground(bg: CustomBackground): Promise<void> {
+  const map = await getCustomBackgroundMap()
+  map[bg.id] = bg
+  await setCustomBackgroundMap(map)
+}
+
+export async function deleteCustomBackground(id: string): Promise<void> {
+  const map = await getCustomBackgroundMap()
+  delete map[id]
+  await setCustomBackgroundMap(map)
+}
+
 export async function getAppState(): Promise<AppState> {
   return getRaw<AppState>(KEY_APP_STATE, DEFAULT_APP_STATE)
 }
@@ -88,4 +121,8 @@ export function makePersonaId(): string {
 
 export function makeWorldInfoId(): string {
   return `wi_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
+}
+
+export function makeCustomBackgroundId(): string {
+  return `bg_custom_${Date.now().toString(36)}_${Math.random().toString(36).slice(2, 8)}`
 }

@@ -3,12 +3,29 @@ import { useEffect, useState, type FC } from "react"
 import { getActiveAdapter, type InjectResult } from "../lib/adapters"
 import { extensionContext } from "../lib/extension-context"
 import { useI18n } from "../lib/i18n"
+import { resizeImageFile } from "../lib/image-resize"
 import { buildPersonaMessage } from "../lib/persona-message"
 import { ensureSeeds } from "../seed"
-import { getAppState, setAppState } from "../storage"
-import type { AppState, Locale, ModeKey, PersonaCard } from "../types"
+import {
+  deleteCustomBackground,
+  getAppState,
+  listCustomBackgrounds,
+  makeCustomBackgroundId,
+  setAppState,
+  upsertCustomBackground
+} from "../storage"
+import {
+  DEFAULT_APP_STATE,
+  type AppState,
+  type CustomBackground,
+  type Locale,
+  type ModeKey,
+  type PageTweaks,
+  type PersonaCard
+} from "../types"
 import { BackgroundPicker } from "./BackgroundPicker"
 import { ModeTabs } from "./ModeTabs"
+import { PageTweaksPanel } from "./PageTweaksPanel"
 import { PersonaList } from "./PersonaList"
 
 /**
@@ -45,6 +62,7 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
   const { t, locale } = useI18n()
   const [state, setState] = useState<AppState | null>(null)
   const [personas, setPersonas] = useState<PersonaCard[]>([])
+  const [customBackgrounds, setCustomBackgrounds] = useState<CustomBackground[]>([])
   const [toast, setToast] = useState<string | null>(null)
   const [contextInvalidated, setContextInvalidated] = useState(false)
 
@@ -53,6 +71,7 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
     // banner instead of surfacing as blank state.
     const unsubscribe = extensionContext.subscribe(setContextInvalidated)
     void getAppState().then(setState)
+    void listCustomBackgrounds().then(setCustomBackgrounds)
     return unsubscribe
   }, [])
 
@@ -73,6 +92,41 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
   async function handleBackgroundSelect(id: string | null) {
     const next = await setAppState({ activeBackgroundId: id })
     setState(next)
+  }
+
+  async function handlePageTweaksChange(tweaks: PageTweaks) {
+    const next = await setAppState({ pageTweaks: tweaks })
+    setState(next)
+  }
+
+  async function handleUploadCustomBackground(file: File) {
+    let dataUrl: string
+    try {
+      dataUrl = await resizeImageFile(file)
+    } catch {
+      showToast(t("bg.custom.uploadFailed"))
+      return
+    }
+    const bg: CustomBackground = {
+      id: makeCustomBackgroundId(),
+      name: file.name.replace(/\.[^.]+$/, "") || t("bg.custom.heading"),
+      dataUrl,
+      createdAt: Date.now()
+    }
+    await upsertCustomBackground(bg)
+    setCustomBackgrounds((prev) => [bg, ...prev])
+    const next = await setAppState({ activeBackgroundId: bg.id })
+    setState(next)
+  }
+
+  async function handleDeleteCustomBackground(id: string) {
+    if (!confirm(t("confirm.deleteBackground"))) return
+    await deleteCustomBackground(id)
+    setCustomBackgrounds((prev) => prev.filter((bg) => bg.id !== id))
+    if (state?.activeBackgroundId === id) {
+      const next = await setAppState({ activeBackgroundId: null })
+      setState(next)
+    }
   }
 
   async function handleDeactivate() {
@@ -146,6 +200,9 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
   const activePersona = personas.find((p) => p.id === state.activePersonaId) ?? null
   // Legacy "original" mode maps to the persona surface (tab was removed).
   const effectiveMode: ModeKey = state.activeMode === "original" ? "persona" : state.activeMode
+  // Older persisted AppState predates this field — no migration system exists
+  // yet (see storage.ts), so default it at the read site like effectiveMode above.
+  const pageTweaks: PageTweaks = state.pageTweaks ?? DEFAULT_APP_STATE.pageTweaks
 
   return (
     <div className="relative flex h-full flex-col font-sans">
@@ -193,7 +250,10 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
         {effectiveMode === "image" && (
           <BackgroundPicker
             activeBackgroundId={state.activeBackgroundId}
+            customBackgrounds={customBackgrounds}
             onSelect={handleBackgroundSelect}
+            onUploadCustom={(file) => void handleUploadCustomBackground(file)}
+            onDeleteCustom={(id) => void handleDeleteCustomBackground(id)}
           />
         )}
         {effectiveMode === "persona" && (
@@ -202,6 +262,9 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
             activePersonaId={state.activePersonaId}
             onApply={handleApply}
           />
+        )}
+        {effectiveMode === "tweaks" && (
+          <PageTweaksPanel tweaks={pageTweaks} onChange={handlePageTweaksChange} />
         )}
       </main>
 

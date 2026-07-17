@@ -46,6 +46,12 @@ export const zh: Messages = {
   // ---- ModeTabs.tsx ----
   "tab.personas": "角色",
   "tab.scenes": "场景",
+  "tab.tweaks": "定制",
+
+  // ---- PageTweaksPanel.tsx ----
+  "tweaks.blurb": "直接作用于 DeepSeek 页面本身的一些小改造。",
+  "tweaks.hideThinking": "隐藏思考过程",
+  "tweaks.hideThinkingDesc": "折叠 DeepSeek 的「已思考」区块——最终回答仍会正常显示。",
 
   // ---- PersonaList.tsx ----
   "list.searchPlaceholder": "搜索角色…",
@@ -59,6 +65,11 @@ export const zh: Messages = {
   // ---- BackgroundPicker.tsx ----
   "bg.blurb": "为对话设置背景氛围。纯视觉效果——绝不影响实际发送的内容。",
   "bg.none": "无",
+  "bg.custom.heading": "我的图片",
+  "bg.custom.upload": "上传图片",
+  "bg.custom.delete": "删除这张背景",
+  "bg.custom.uploadFailed": "无法读取这张图片，换一张试试。",
+  "confirm.deleteBackground": "确定删除这张背景图片吗？",
 
   // ---- popup.tsx ----
   "popup.activeOn": "正在 chat.deepseek.com 上使用",

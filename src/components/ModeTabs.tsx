@@ -13,9 +13,10 @@ interface Props {
  * (an informational placeholder tab) is gone from the UI; PersonaPanel maps
  * any stored "original" value to "persona" so old state keeps working.
  */
-const TABS: { key: ModeKey; labelKey: "tab.personas" | "tab.scenes" }[] = [
+const TABS: { key: ModeKey; labelKey: "tab.personas" | "tab.scenes" | "tab.tweaks" }[] = [
   { key: "persona", labelKey: "tab.personas" },
-  { key: "image", labelKey: "tab.scenes" }
+  { key: "image", labelKey: "tab.scenes" },
+  { key: "tweaks", labelKey: "tab.tweaks" }
 ]
 
 export const ModeTabs: FC<Props> = ({ active, onChange }) => {

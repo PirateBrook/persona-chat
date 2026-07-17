@@ -34,7 +34,8 @@
       "https://claude.ai/*"
     ],
     "permissions": [
-      "storage"
+      "storage",
+      "unlimitedStorage"
     ]
   },
   "pnpm": {

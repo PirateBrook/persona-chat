@@ -49,6 +49,12 @@ export const en = {
   // ---- ModeTabs.tsx ----
   "tab.personas": "Personas",
   "tab.scenes": "Scenes",
+  "tab.tweaks": "Tweaks",
+
+  // ---- PageTweaksPanel.tsx ----
+  "tweaks.blurb": "Small DOM tweaks applied directly to the DeepSeek page.",
+  "tweaks.hideThinking": "Hide reasoning trace",
+  "tweaks.hideThinkingDesc": "Collapses DeepSeek's \"Thought for Ns\" block — the final answer still shows.",
 
   // ---- PersonaList.tsx ----
   "list.searchPlaceholder": "Search personas…",
@@ -62,6 +68,11 @@ export const en = {
   // ---- BackgroundPicker.tsx ----
   "bg.blurb": "Sets the scene behind the chat. Purely visual — never touches what gets sent.",
   "bg.none": "None",
+  "bg.custom.heading": "Your uploads",
+  "bg.custom.upload": "Upload image",
+  "bg.custom.delete": "Delete this background",
+  "bg.custom.uploadFailed": "Couldn't read that image — try a different file.",
+  "confirm.deleteBackground": "Delete this background image?",
 
   // ---- popup.tsx ----
   "popup.activeOn": "Active on chat.deepseek.com",

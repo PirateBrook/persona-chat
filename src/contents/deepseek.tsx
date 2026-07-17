@@ -6,6 +6,7 @@ import { FloatingButton } from "~components/FloatingButton"
 import { PersonaPanel } from "~components/PersonaPanel"
 import { applyBackground } from "~lib/backgrounds"
 import { useI18n } from "~lib/i18n"
+import { applyPageTweaks } from "~lib/page-tweaks"
 import { subscribeStorageChanged } from "~lib/storage-events"
 import { describeEnrichOutcome, usePersonaEnrich } from "~lib/use-persona-enrich"
 import { getAppState, getPersona } from "~storage"
@@ -50,7 +51,8 @@ export default function DeepSeekOverlay() {
 
   async function refresh() {
     const state = await getAppState()
-    applyBackground(state.activeBackgroundId)
+    void applyBackground(state.activeBackgroundId)
+    applyPageTweaks(state.pageTweaks)
 
     if (!state.activePersonaId) {
       setActivePersona(null)
