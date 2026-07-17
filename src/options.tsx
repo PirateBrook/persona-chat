@@ -401,17 +401,26 @@ export default function Options() {
                         className="space-y-1.5 rounded-xl border border-gray-200 bg-gray-50/40 p-2.5 dark:border-gray-700 dark:bg-gray-800/40"
                       >
                         <div className="flex items-center gap-2">
-                          <input
-                            value={worldInfoKeysDraft[entry.id] ?? ""}
-                            onChange={(e) =>
-                              setWorldInfoKeysDraft((prev) => ({
-                                ...prev,
-                                [entry.id]: e.target.value
-                              }))
-                            }
-                            placeholder={t("placeholder.keys")}
-                            className={"flex-1 " + INPUT_CLS_SMALL}
-                          />
+                          {entry.source === "memory" ? (
+                            <span
+                              title={t("memory.badgeHint")}
+                              className="flex-1 rounded-lg bg-persona-50 px-2.5 py-1.5 text-xs font-medium text-persona-600 dark:bg-persona-900/30 dark:text-persona-300"
+                            >
+                              {t("memory.badge")}
+                            </span>
+                          ) : (
+                            <input
+                              value={worldInfoKeysDraft[entry.id] ?? ""}
+                              onChange={(e) =>
+                                setWorldInfoKeysDraft((prev) => ({
+                                  ...prev,
+                                  [entry.id]: e.target.value
+                                }))
+                              }
+                              placeholder={t("placeholder.keys")}
+                              className={"flex-1 " + INPUT_CLS_SMALL}
+                            />
+                          )}
                           <button
                             onClick={() => removeWorldInfoRow(entry.id)}
                             className="rounded px-1.5 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-gray-800"

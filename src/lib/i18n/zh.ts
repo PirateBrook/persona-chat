@@ -145,5 +145,12 @@ export const zh: Messages = {
   "bgCategory.fun": "娱乐",
   "bgCategory.companion": "陪伴",
   "bgCategory.roleplay": "角色扮演",
-  "bgCategory.philosophy": "哲学"
+  "bgCategory.philosophy": "哲学",
+
+  // ---- memory ----
+  "pill.memory": "记住",
+  "memory.placeholder": "要记住点什么？",
+  "memory.saved": "已保存",
+  "memory.badge": "📌 记忆",
+  "memory.badgeHint": "在对话中随手记下的，不是手写设定"
 }

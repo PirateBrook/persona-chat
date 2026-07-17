@@ -13,12 +13,16 @@ export function matchWorldInfo(
   text: string,
   alreadyTriggered: Set<string>
 ): WorldInfoEntry[] {
-  if (!entries || entries.length === 0 || !text.trim()) return []
+  if (!entries || entries.length === 0) return []
 
-  const haystack = text.toLowerCase()
+  // Kept even when the draft is empty — `alwaysActive` entries (user-flagged
+  // memory notes) must still fire on their own, without a keyword match.
+  const haystack = text.trim() ? text.toLowerCase() : ""
 
   return entries.filter((entry) => {
     if (!entry.enabled || alreadyTriggered.has(entry.id)) return false
+    if (entry.alwaysActive) return true
+    if (!haystack) return false
     return entry.keys.some((key) => key.trim() && haystack.includes(key.trim().toLowerCase()))
   })
 }
