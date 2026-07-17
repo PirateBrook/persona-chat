@@ -20,8 +20,13 @@ export function matchWorldInfo(
   const haystack = text.trim() ? text.toLowerCase() : ""
 
   return entries.filter((entry) => {
-    if (!entry.enabled || alreadyTriggered.has(entry.id)) return false
+    if (!entry.enabled) return false
+    // Checked before `alreadyTriggered`: a memory note's whole point is that
+    // it keeps resurfacing on every future tap, unlike keyword-matched lore
+    // which is meant to fire once per session so it doesn't repeat itself
+    // every time the same word comes up again.
     if (entry.alwaysActive) return true
+    if (alreadyTriggered.has(entry.id)) return false
     if (!haystack) return false
     return entry.keys.some((key) => key.trim() && haystack.includes(key.trim().toLowerCase()))
   })

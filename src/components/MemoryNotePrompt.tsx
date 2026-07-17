@@ -54,7 +54,7 @@ export function MemoryNotePrompt({ persona }: Props) {
     return (
       <button
         onClick={open}
-        className="fixed bottom-[4.6rem] right-40 z-[999999] flex h-9 items-center gap-1.5 rounded-full border border-gray-200/80 bg-white/95 px-3.5 text-[11px] font-medium text-gray-700 shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200"
+        className="fixed bottom-[4.6rem] right-56 z-[999999] flex h-9 items-center gap-1.5 rounded-full border border-gray-200/80 bg-white/95 px-3.5 text-[11px] font-medium text-gray-700 shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200"
       >
         <span aria-hidden>📌</span> {justSaved ? t("memory.saved") : t("pill.memory")}
       </button>

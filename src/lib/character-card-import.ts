@@ -94,6 +94,7 @@ interface RawCharacterBookEntry {
   key?: unknown
   content?: unknown
   enabled?: unknown
+  constant?: unknown
 }
 
 interface RawCharacterData {
@@ -164,7 +165,12 @@ function mapWorldInfo(raw: RawCharacterData): WorldInfoEntry[] | undefined {
       content,
       // Default to on per the mapping spec; only an explicit `enabled: false`
       // from the source card keeps an entry off.
-      enabled: entry.enabled !== false
+      enabled: entry.enabled !== false,
+      // V2/V3's `constant: true` means the same thing our own `alwaysActive`
+      // does (bypass keyword matching, always inject) — without this an
+      // imported always-on lorebook entry would silently become an ordinary
+      // keyword-gated one.
+      alwaysActive: entry.constant === true
     })
   }
   return mapped.length > 0 ? mapped : undefined
@@ -221,11 +227,11 @@ export async function parseCharacterCardFile(file: File): Promise<PersonaCard> {
     throw new CharacterCardImportError("missing_name", "Card has no name field")
   }
 
-  // Cards put character info in `personality` in practice; `description` is
-  // the fallback for cards that only filled in the latter. If both are
-  // empty we fall back to the name so `personaPrompt` (required, drives
+  // Real-world V2/V3 cards put the actual character sheet in `description`;
+  // `personality` is a mostly-legacy field many cards leave blank. If both
+  // are empty we fall back to the name so `personaPrompt` (required, drives
   // every persona's behavior) is never blank.
-  const personaPrompt = stringOr(raw.personality) || stringOr(raw.description) || name
+  const personaPrompt = stringOr(raw.description) || stringOr(raw.personality) || name
   const now = Date.now()
 
   return {

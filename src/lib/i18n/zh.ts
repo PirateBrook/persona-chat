@@ -163,6 +163,7 @@ export const zh: Messages = {
 
   // ---- character-card-import ----
   "cardImport.button": "导入角色卡",
+  "cardImport.creatorLabel": "作者：{name}",
   "cardImport.portraitHint": "从角色卡导入的头像",
   "cardImport.success": "已导入「{name}」。",
   "cardImport.error.unsupported_file": "仅支持 .png 和 .json 格式的角色卡文件。",

@@ -142,7 +142,7 @@ export default function DeepSeekOverlay() {
           onClick={handleSpeak}
           aria-label={t("tts.play")}
           title={t("tts.play")}
-          className="fixed bottom-[4.6rem] right-32 z-[999999] flex h-9 w-9 items-center justify-center rounded-full border border-gray-200/80 bg-white/95 text-sm shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95"
+          className="fixed bottom-[4.6rem] right-36 z-[999999] flex h-9 w-9 items-center justify-center rounded-full border border-gray-200/80 bg-white/95 text-sm shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95"
         >
           <span aria-hidden>🔊</span>
         </button>

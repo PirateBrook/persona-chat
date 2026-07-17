@@ -359,6 +359,16 @@ export default function Options() {
                     />
                   </div>
                 </FormField>
+                {(editing.creator || editing.creatorNotes) && (
+                  <p className="rounded-lg bg-gray-50 px-3 py-2 text-[11px] leading-relaxed text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
+                    {editing.creator && (
+                      <span className="block font-medium text-gray-600 dark:text-gray-300">
+                        {t("cardImport.creatorLabel", { name: editing.creator })}
+                      </span>
+                    )}
+                    {editing.creatorNotes && <span className="block">{editing.creatorNotes}</span>}
+                  </p>
+                )}
                 <FormField label={t("field.personaPrompt")}>
                   <textarea
                     value={editing.personaPrompt}

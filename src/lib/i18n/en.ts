@@ -168,6 +168,7 @@ export const en = {
 
   // ---- character-card-import ----
   "cardImport.button": "Import character card",
+  "cardImport.creatorLabel": "By {name}",
   "cardImport.portraitHint": "Portrait imported from character card",
   "cardImport.success": 'Imported "{name}".',
   "cardImport.error.unsupported_file": "Only .png and .json character card files are supported.",
