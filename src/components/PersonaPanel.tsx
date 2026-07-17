@@ -21,12 +21,14 @@ import {
   type Locale,
   type ModeKey,
   type PageTweaks,
-  type PersonaCard
+  type PersonaCard,
+  type TtsPreference
 } from "../types"
 import { BackgroundPicker } from "./BackgroundPicker"
 import { ModeTabs } from "./ModeTabs"
 import { PageTweaksPanel } from "./PageTweaksPanel"
 import { PersonaList } from "./PersonaList"
+import { TtsPanel } from "./TtsPanel"
 
 /**
  * Applying a persona: inject the wrapped persona message into the active
@@ -96,6 +98,11 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
 
   async function handlePageTweaksChange(tweaks: PageTweaks) {
     const next = await setAppState({ pageTweaks: tweaks })
+    setState(next)
+  }
+
+  async function handleTtsChange(tts: TtsPreference) {
+    const next = await setAppState({ tts })
     setState(next)
   }
 
@@ -203,6 +210,7 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
   // Older persisted AppState predates this field — no migration system exists
   // yet (see storage.ts), so default it at the read site like effectiveMode above.
   const pageTweaks: PageTweaks = state.pageTweaks ?? DEFAULT_APP_STATE.pageTweaks
+  const tts: TtsPreference = state.tts ?? DEFAULT_APP_STATE.tts
 
   return (
     <div className="relative flex h-full flex-col font-sans">
@@ -264,7 +272,10 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
           />
         )}
         {effectiveMode === "tweaks" && (
-          <PageTweaksPanel tweaks={pageTweaks} onChange={handlePageTweaksChange} />
+          <>
+            <PageTweaksPanel tweaks={pageTweaks} onChange={handlePageTweaksChange} />
+            <TtsPanel tts={tts} onChange={handleTtsChange} />
+          </>
         )}
       </main>
 

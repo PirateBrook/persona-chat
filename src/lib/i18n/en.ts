@@ -150,5 +150,12 @@ export const en = {
   "bgCategory.fun": "fun",
   "bgCategory.companion": "companion",
   "bgCategory.roleplay": "roleplay",
-  "bgCategory.philosophy": "philosophy"
+  "bgCategory.philosophy": "philosophy",
+
+  // ---- tts ----
+  "tts.enable": "Read replies aloud",
+  "tts.enableDesc": "Uses your browser's built-in text-to-speech — no network call.",
+  "tts.voice": "Voice",
+  "tts.systemDefault": "System default",
+  "tts.play": "Read last reply aloud"
 } as const

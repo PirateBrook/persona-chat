@@ -8,9 +8,17 @@ import { applyBackground } from "~lib/backgrounds"
 import { useI18n } from "~lib/i18n"
 import { applyPageTweaks } from "~lib/page-tweaks"
 import { subscribeStorageChanged } from "~lib/storage-events"
+import { speak } from "~lib/tts"
 import { describeEnrichOutcome, usePersonaEnrich } from "~lib/use-persona-enrich"
 import { getAppState, getPersona } from "~storage"
-import type { PersonaCard } from "~types"
+import { DEFAULT_APP_STATE, type PersonaCard, type TtsPreference } from "~types"
+
+/** DeepSeek's own stable design-system class for a rendered assistant reply
+ *  (see docs/deepseek-dom-notes.md). The message list is virtualized, so
+ *  only currently-visible replies exist in the DOM at any moment — this is
+ *  also why presence has to be tracked live via MutationObserver rather than
+ *  read once on mount. */
+const ASSISTANT_REPLY_SELECTOR = ".ds-assistant-message-main-content"
 
 export const config: PlasmoCSConfig = {
   matches: ["https://chat.deepseek.com/*"],
@@ -38,6 +46,8 @@ export default function DeepSeekOverlay() {
   const [open, setOpen] = useState(false)
   const [activePersona, setActivePersona] = useState<PersonaCard | null>(null)
   const [pillToast, setPillToast] = useState<string | null>(null)
+  const [tts, setTts] = useState<TtsPreference>(DEFAULT_APP_STATE.tts)
+  const [hasAssistantReply, setHasAssistantReply] = useState(false)
   const { enrich } = usePersonaEnrich(activePersona)
 
   useEffect(() => {
@@ -49,16 +59,55 @@ export default function DeepSeekOverlay() {
     })
   }, [])
 
+  useEffect(() => {
+    // Virtualized message list — a reply can mount/unmount as the user
+    // scrolls or as streaming finishes, so presence is tracked live rather
+    // than checked once. Debounced the same way backgrounds.ts's theme
+    // watcher is, since a streaming reply mutates the DOM continuously.
+    function checkReply() {
+      setHasAssistantReply(
+        document.querySelectorAll(ASSISTANT_REPLY_SELECTOR).length > 0
+      )
+    }
+    checkReply()
+
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null
+    let observer: MutationObserver | null = null
+    try {
+      observer = new MutationObserver(() => {
+        if (debounceTimer) clearTimeout(debounceTimer)
+        debounceTimer = setTimeout(checkReply, 200)
+      })
+      observer.observe(document.body, { childList: true, subtree: true })
+    } catch {
+      // MutationObserver unavailable in some odd context — pill just won't
+      // live-update; it'll still reflect reality on next mount/refresh.
+    }
+
+    return () => {
+      if (debounceTimer) clearTimeout(debounceTimer)
+      observer?.disconnect()
+    }
+  }, [])
+
   async function refresh() {
     const state = await getAppState()
     void applyBackground(state.activeBackgroundId)
     applyPageTweaks(state.pageTweaks)
+    setTts(state.tts ?? DEFAULT_APP_STATE.tts)
 
     if (!state.activePersonaId) {
       setActivePersona(null)
       return
     }
     setActivePersona(await getPersona(state.activePersonaId))
+  }
+
+  function handleSpeak() {
+    const replies = document.querySelectorAll(ASSISTANT_REPLY_SELECTOR)
+    const last = replies[replies.length - 1]
+    if (!last?.textContent) return
+    speak(last.textContent, tts)
   }
 
   async function handleEnrich() {
@@ -84,6 +133,17 @@ export default function DeepSeekOverlay() {
           className="fixed bottom-[4.6rem] right-6 z-[999999] flex h-9 items-center gap-1.5 rounded-full border border-gray-200/80 bg-white/95 px-3.5 text-[11px] font-medium text-gray-700 shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200"
         >
           <span aria-hidden>✨</span> {t("pill.enrich")}
+        </button>
+      )}
+
+      {tts.enabled && hasAssistantReply && !open && (
+        <button
+          onClick={handleSpeak}
+          aria-label={t("tts.play")}
+          title={t("tts.play")}
+          className="fixed bottom-[4.6rem] right-32 z-[999999] flex h-9 w-9 items-center justify-center rounded-full border border-gray-200/80 bg-white/95 text-sm shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95"
+        >
+          <span aria-hidden>🔊</span>
         </button>
       )}
 

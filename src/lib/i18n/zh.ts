@@ -145,5 +145,12 @@ export const zh: Messages = {
   "bgCategory.fun": "娱乐",
   "bgCategory.companion": "陪伴",
   "bgCategory.roleplay": "角色扮演",
-  "bgCategory.philosophy": "哲学"
+  "bgCategory.philosophy": "哲学",
+
+  // ---- tts ----
+  "tts.enable": "朗读回复",
+  "tts.enableDesc": "使用浏览器自带的语音朗读功能——不联网、不额外产生费用。",
+  "tts.voice": "语音",
+  "tts.systemDefault": "系统默认",
+  "tts.play": "朗读最新回复"
 }
