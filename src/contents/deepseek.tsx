@@ -3,6 +3,7 @@ import type { PlasmoCSConfig, PlasmoGetShadowHostId, PlasmoGetStyle } from "plas
 import { useEffect, useState } from "react"
 
 import { FloatingButton } from "~components/FloatingButton"
+import { MemoryNotePrompt } from "~components/MemoryNotePrompt"
 import { PersonaPanel } from "~components/PersonaPanel"
 import { applyBackground } from "~lib/backgrounds"
 import { useI18n } from "~lib/i18n"
@@ -86,6 +87,8 @@ export default function DeepSeekOverlay() {
           <span aria-hidden>✨</span> {t("pill.enrich")}
         </button>
       )}
+
+      {!!activePersona && !open && <MemoryNotePrompt persona={activePersona} />}
 
       {pillToast && (
         <div className="fixed bottom-[7.2rem] right-6 z-[999999] max-w-xs animate-fade-up rounded-xl bg-gray-900/95 px-3.5 py-2.5 text-xs font-medium text-white shadow-lg backdrop-blur dark:bg-white/95 dark:text-gray-900">

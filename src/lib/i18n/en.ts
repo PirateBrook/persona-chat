@@ -150,5 +150,12 @@ export const en = {
   "bgCategory.fun": "fun",
   "bgCategory.companion": "companion",
   "bgCategory.roleplay": "roleplay",
-  "bgCategory.philosophy": "philosophy"
+  "bgCategory.philosophy": "philosophy",
+
+  // ---- memory ----
+  "pill.memory": "Remember",
+  "memory.placeholder": "What should I remember?",
+  "memory.saved": "Saved",
+  "memory.badge": "📌 Memory",
+  "memory.badgeHint": "Captured during a chat, not hand-authored"
 } as const
