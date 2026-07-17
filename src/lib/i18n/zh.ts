@@ -152,5 +152,12 @@ export const zh: Messages = {
   "memory.placeholder": "要记住点什么？",
   "memory.saved": "已保存",
   "memory.badge": "📌 记忆",
-  "memory.badgeHint": "在对话中随手记下的，不是手写设定"
+  "memory.badgeHint": "在对话中随手记下的，不是手写设定",
+
+  // ---- tts ----
+  "tts.enable": "朗读回复",
+  "tts.enableDesc": "使用浏览器自带的语音朗读功能——不联网、不额外产生费用。",
+  "tts.voice": "语音",
+  "tts.systemDefault": "系统默认",
+  "tts.play": "朗读最新回复"
 }

@@ -157,5 +157,12 @@ export const en = {
   "memory.placeholder": "What should I remember?",
   "memory.saved": "Saved",
   "memory.badge": "📌 Memory",
-  "memory.badgeHint": "Captured during a chat, not hand-authored"
+  "memory.badgeHint": "Captured during a chat, not hand-authored",
+
+  // ---- tts ----
+  "tts.enable": "Read replies aloud",
+  "tts.enableDesc": "Uses your browser's built-in text-to-speech — no network call.",
+  "tts.voice": "Voice",
+  "tts.systemDefault": "System default",
+  "tts.play": "Read last reply aloud"
 } as const
