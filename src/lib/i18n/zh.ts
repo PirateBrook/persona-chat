@@ -78,8 +78,8 @@ export const zh: Messages = {
 
   // ---- options.tsx ----
   "options.subtitle": "你的角色库 · 本地存储",
-  "options.export": "导出",
-  "options.import": "导入",
+  "options.export": "导出备份",
+  "options.import": "导入备份",
   "options.new": "+ 新建角色",
   "options.listHeading": "角色（{count}）",
   "options.worldInfoCount.one": "📖 {count} 条世界设定",
@@ -164,7 +164,7 @@ export const zh: Messages = {
   "tts.play": "朗读最新回复",
 
   // ---- character-card-import ----
-  "cardImport.button": "导入角色卡",
+  "cardImport.button": "导入角色卡（chub.ai 等）",
   "cardImport.creatorLabel": "作者：{name}",
   "cardImport.portraitHint": "从角色卡导入的头像",
   "cardImport.success": "已导入「{name}」。",

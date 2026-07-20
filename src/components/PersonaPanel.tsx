@@ -5,6 +5,7 @@ import { extensionContext } from "../lib/extension-context"
 import { useI18n } from "../lib/i18n"
 import { resizeImageFile } from "../lib/image-resize"
 import { buildPersonaMessage } from "../lib/persona-message"
+import { subscribeStorageChanged } from "../lib/storage-events"
 import { ensureSeeds } from "../seed"
 import {
   deleteCustomBackground,
@@ -84,6 +85,16 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
     // seed personas in place instead of freezing at whichever language they
     // were first installed in.
     void ensureSeeds(locale).then(setPersonas)
+
+    // The panel can already be open on a DeepSeek tab while a persona gets
+    // imported/edited/deleted from the options page in a separate tab —
+    // without this, the open panel's own `personas` state never learns
+    // about it until the next full remount (closing the panel or reloading
+    // the page), which reads as "the import silently did nothing."
+    return subscribeStorageChanged((changes, area) => {
+      if (area !== "local" || !changes.personas) return
+      void ensureSeeds(locale).then(setPersonas)
+    })
   }, [locale])
 
   async function handleModeChange(mode: ModeKey) {

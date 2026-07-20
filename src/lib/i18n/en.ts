@@ -81,8 +81,8 @@ export const en = {
 
   // ---- options.tsx ----
   "options.subtitle": "Your character library · stored locally",
-  "options.export": "Export",
-  "options.import": "Import",
+  "options.export": "Export backup",
+  "options.import": "Import backup",
   "options.new": "+ New persona",
   "options.listHeading": "Personas ({count})",
   "options.worldInfoCount.one": "📖 {count} world info entry",
@@ -169,7 +169,7 @@ export const en = {
   "tts.play": "Read last reply aloud",
 
   // ---- character-card-import ----
-  "cardImport.button": "Import character card",
+  "cardImport.button": "Import character card (chub.ai etc.)",
   "cardImport.creatorLabel": "By {name}",
   "cardImport.portraitHint": "Portrait imported from character card",
   "cardImport.success": 'Imported "{name}".',

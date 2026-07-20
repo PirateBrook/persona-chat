@@ -3628,7 +3628,16 @@ export async function ensureSeeds(locale: Locale): Promise<PersonaCard[]> {
     const current = map[seed.id]
     if (current?.isCustomized) continue
     const expanded = expandSeed(seed, locale, now)
-    map[seed.id] = current ? { ...expanded, createdAt: current.createdAt } : expanded
+    const candidate = current ? { ...expanded, createdAt: current.createdAt } : expanded
+    // Skip the write entirely when nothing but the timestamp would change —
+    // this function now runs on every `personas` storage event (not just
+    // mount/locale-change, see PersonaPanel.tsx), so unconditionally
+    // re-stamping all 100 seeds' `updatedAt` on every call would keep
+    // bumping them above anything the user just imported or edited,
+    // permanently burying fresh content at the bottom of the "most
+    // recent" sort.
+    if (current && isSameCard(current, candidate)) continue
+    map[seed.id] = candidate
     changed = true
   }
 
@@ -3636,4 +3645,34 @@ export async function ensureSeeds(locale: Locale): Promise<PersonaCard[]> {
   // Sort from the in-memory map (same ordering listPersonas uses) instead of
   // re-reading storage — map already holds the exact post-write state.
   return Object.values(map).sort((a, b) => b.updatedAt - a.updatedAt)
+}
+
+/** Structural equality, ignoring key order (unlike a raw JSON.stringify
+ *  comparison, which would treat two objects with identical content but
+ *  different key insertion order as different — a real risk here since
+ *  `current` came from however storage happened to serialize it, not
+ *  necessarily the same construction path as a freshly expanded `candidate`).
+ *  Also ignores `updatedAt`, which always differs by construction. */
+function isSameCard(a: PersonaCard, b: PersonaCard): boolean {
+  const { updatedAt: _a, ...restA } = a
+  const { updatedAt: _b, ...restB } = b
+  return deepEqual(restA, restB)
+}
+
+function deepEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true
+  if (typeof a !== typeof b || a === null || b === null) return false
+  if (Array.isArray(a) || Array.isArray(b)) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false
+    return a.every((item, i) => deepEqual(item, b[i]))
+  }
+  if (typeof a === "object" && typeof b === "object") {
+    const keysA = Object.keys(a as object)
+    const keysB = Object.keys(b as object)
+    if (keysA.length !== keysB.length) return false
+    return keysA.every((key) =>
+      deepEqual((a as Record<string, unknown>)[key], (b as Record<string, unknown>)[key])
+    )
+  }
+  return false
 }
