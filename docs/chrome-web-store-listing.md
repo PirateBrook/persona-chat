@@ -14,11 +14,19 @@ Alternative if "Fun" underperforms after launch: **Social & Communication**.
 
 ## Short description (≤132 characters)
 
+Revised after a persona-driven install-decision review (non-technical user,
+first time seeing the listing): lead with a concrete, evocative character
+name instead of jargon ("character cards"/"world info" read as unfamiliar
+terms to someone who's never used a roleplay tool), and move the privacy
+reassurance up from the bottom of the long description — "will this leak my
+chat history" was the reviewer's first unspoken worry, and it shouldn't wait
+until paragraph 6 to get answered.
+
 **English:**
-> Give DeepSeek a persona: character cards, world info, and custom scenes — 100% free, 100% local, no API key needed.
+> Give DeepSeek a roleplay persona — a bar owner, a talking cat, and more — 100% free, no chat data ever uploaded, no API key.
 
 **中文:**
-> 给 DeepSeek 装上专属人设:角色卡、世界设定、自定义背景——完全免费,数据全部本地存储,无需 API Key。
+> 给 DeepSeek 装上「深夜小酒馆的老板」「不讲逻辑的猫」等角色扮演人设——完全免费、不上传聊天记录、无需 API Key。
 
 ## Detailed description
 
@@ -29,34 +37,39 @@ Alternative if "Fun" underperforms after launch: **Social & Communication**.
 > in the middle. It rides your own DeepSeek login the same way you already
 > use it; we just help you set the scene.
 >
-> **Character cards.** 15 built-in personas spanning work, roleplay,
-> philosophy, and companion moods — or write your own with a personality,
-> scenario, example dialogue, and greeting.
+> Nothing you type ever leaves your browser. Every persona, world info
+> entry, and background image lives only in your own local storage — we
+> don't have a server, so there's nowhere for it to go. See our privacy
+> policy for specifics.
 >
-> **World info.** Attach keyword-triggered lore to a character (a backstory
-> detail, a running joke, a plot fact). Tap "✨ Enrich" before sending and
-> matching lore gets woven into your message automatically.
+> Character cards — basically "a character with its personality and
+> opening line pre-written." 100+ built-in personas spanning work, roleplay,
+> philosophy, and companion moods (a late-night bar owner, an illogical
+> talking cat) — or write your own with a personality, scenario, example
+> dialogue, and greeting. Already have cards from chub.ai or SillyTavern?
+> Import them directly (PNG or JSON) instead of starting from scratch.
 >
-> **Stay in character.** An optional in-character reminder resurfaces every
+> World info — basically "a cheat sheet the character can glance at" —
+> attach keyword-triggered lore (a backstory detail, a running joke, a plot
+> fact). Tap "✨ Enrich" before sending and matching lore gets woven into
+> your message automatically.
+>
+> Stay in character — an optional in-character reminder resurfaces every
 > few messages to fight the model drifting out of persona over a long chat.
 >
-> **Scenes.** 12 hand-tuned CSS backgrounds across five moods, or upload
+> Scenes — 12 hand-tuned CSS backgrounds across five moods, or upload
 > your own photos — swap the whole atmosphere behind the chat in one click.
 >
-> **Page tweaks.** Hide DeepSeek's "reasoning trace" block if you just want
+> Page tweaks — hide DeepSeek's "reasoning trace" block if you just want
 > the answer.
 >
-> **Bilingual.** Full English/Chinese UI and content, auto-detected from
+> Bilingual — full English/Chinese UI and content, auto-detected from
 > your browser language.
->
-> **Private by design.** Every persona, world info entry, and background
-> image is stored locally via chrome.storage — never uploaded anywhere,
-> because there's nothing to upload it to. See our privacy policy for
-> specifics.
 >
 > Everything you type is still sent the normal way, by you, pressing Enter —
 > Persona.chat only ever prepares the message; it never sends anything on
-> its own.
+> its own. Add it free, pick a persona, and turn your next DeepSeek chat
+> into a scene.
 
 **中文:**
 
@@ -64,28 +77,42 @@ Alternative if "Fun" underperforms after launch: **Social & Communication**.
 > 平台——不需要 API Key,不需要订阅,中间也没有我们自己的服务器。它就是骑在
 > 你本来就在用的 DeepSeek 登录会话上,我们只是帮你把场景搭好。
 >
-> **角色卡。** 15 个内置人设,覆盖职场、角色扮演、哲学思辨、陪伴等不同调性,
-> 也可以自己写:性格设定、场景、示例对话、开场白一应俱全。
+> 不上传你的任何聊天内容。角色、世界设定、背景图片全部只存在你自己的
+> 浏览器本地——我们没有服务器,也没有地方可以接收你的数据。具体细节见我们的
+> 隐私政策。
 >
-> **世界设定。** 给角色绑定关键词触发的背景设定(身世细节、梗、剧情事实)。
-> 发送前点一下"✨ 增强",匹配到的设定会自动织入你的消息里。
+> 角色卡——说白了就是"提前写好性格和开场白的一个角色"。100+ 个内置人设,
+> 覆盖职场、角色扮演、哲学思辨、陪伴等不同调性(比如"深夜小酒馆的老板"、
+> "不讲逻辑的猫"),也可以自己写:性格设定、场景、示例对话、开场白一应俱全。
+> 已经有 chub.ai 或 SillyTavern 的角色卡?直接导入(PNG 或 JSON),不用从头写。
 >
-> **防止跑偏。** 可选的角色提醒会每隔几条消息重新出现一次,防止长对话里模型
+> 世界设定——说白了就是"给角色配一本小抄"——绑定几个关键词,聊到相关话题
+> 时自动把设定好的背景信息(身世细节、梗、剧情事实)带出来。发送前点一下
+> "✨ 增强",匹配到的设定会自动织入你的消息里。
+>
+> 防止跑偏——可选的角色提醒会每隔几条消息重新出现一次,防止长对话里模型
 > 慢慢演成另一个人。
 >
-> **场景。** 12 款手工调校的 CSS 背景,覆盖五种氛围,也可以直接上传自己的
+> 场景——12 款手工调校的 CSS 背景,覆盖五种氛围,也可以直接上传自己的
 > 照片——一键切换聊天背后的整个氛围。
 >
-> **页面定制。** 想直接看答案的话,可以隐藏 DeepSeek 的"已思考"过程展示。
+> 页面定制——想直接看答案的话,可以隐藏 DeepSeek 的"已思考"过程展示。
 >
-> **中英双语。** 界面和内容全面支持中英文,根据浏览器语言自动检测。
->
-> **设计上就保证隐私。** 每一个角色、世界设定条目、背景图片都只通过
-> chrome.storage 存在本地——不会上传到任何地方,因为压根没有服务器可以上传。
-> 具体细节见我们的隐私政策。
+> 中英双语——界面和内容全面支持中英文,根据浏览器语言自动检测。
 >
 > 你发送的每一条消息,依然是你自己按回车发出去的——Persona.chat 只负责把
-> 消息准备好,绝不会替你自动发送任何内容。
+> 消息准备好,绝不会替你自动发送任何内容。免费装上,选一个角色,下一次打开
+> DeepSeek 就能开始。
+
+## ASO audit notes (marketing-skills:aso, this pass)
+
+Independently confirmed and fixed: stale "15 personas" copy (now 100+),
+missing chub.ai/SillyTavern card-import mention, unrendered `**bold**`
+markdown (CWS's detailed-description field is plain text — the asterisks
+above are gone, replaced with em-dash lead-ins), and no closing CTA (added
+to the end of both long descriptions). Screenshot 1 also leaked real
+personal DeepSeek chat history via the sidebar — see the Assets checklist
+below for status.
 
 ## Permission justifications (for the CWS submission form)
 
@@ -106,7 +133,21 @@ Alternative if "Fun" underperforms after launch: **Social & Communication**.
 - [x] Screenshots, 1280×800, in `docs/store-assets/`:
       `screenshot-1-personas.png` (character list + tag filters),
       `screenshot-2-scenes.png` (background gallery),
-      `screenshot-3-fullpage-background.png` (full-page atmosphere, no panel open)
+      `screenshot-3-fullpage-background.png` (full-page atmosphere, no panel open),
+      `screenshot-4-persona-injected.png` (a persona's composed opening message
+      actually sitting in the real DeepSeek chat input — added after a
+      persona-driven install-decision review flagged that prospective users
+      want to see "what does talking to it actually look like," not just the
+      picker UI)
 - [ ] Optional: small promo tile 440×280, large tile 920×680, marquee 1400×560
-- [x] Privacy policy (`PRIVACY.md` — needs to be hosted at a public URL, e.g.
-      via GitHub Pages or the repo's raw GitHub URL, before submission)
+- [x] Privacy policy — hosted at
+      https://github.com/PirateBrook/persona-chat/blob/main/PRIVACY.md
+      (GitHub renders the markdown directly; use this URL in the CWS
+      submission form's privacy policy field)
+- [ ] CWS developer dashboard "Privacy practices" disclosure tab — a separate
+      form from the hosted privacy policy link above; must be filled in at
+      submission time (data usage categories, purpose, no third-party sale).
+- [ ] Screenshot 1 needs a retake — its sidebar shows real personal DeepSeek
+      chat history (e.g. actual past conversation titles), which visually
+      undercuts the "nothing you type ever leaves your browser" pitch right
+      next to it. Recapture with the sidebar collapsed or a clean account.
