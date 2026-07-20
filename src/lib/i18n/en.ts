@@ -132,6 +132,8 @@ export const en = {
   "tag.philosophy": "Philosophy",
   "tag.roleplay": "Roleplay",
   "tag.companion": "Companion",
+  "tag.fantasy": "Fantasy",
+  "tag.mystery": "Mystery",
 
   // ---- background preset labels & categories ----
   "bg.bg_slate_focus": "Slate Focus",
@@ -176,5 +178,8 @@ export const en = {
     "No character data found in that PNG — expected a chara/ccv3 tEXt chunk.",
   "cardImport.error.invalid_json": "Couldn't parse the character card data as JSON.",
   "cardImport.error.missing_name": "That character card has no name field.",
-  "cardImport.error.unknown": "Couldn't import that character card."
+  "cardImport.error.unknown": "Couldn't import that character card.",
+  "cardImport.findMore": "Find more characters ↗",
+  "cardImport.findMoreHint":
+    "Opens chub.ai in a new tab — a third-party character card community, not affiliated with us. Cards you download there work with \"Import character card\" above.",
 } as const

@@ -261,6 +261,15 @@ export default function Options() {
                 }}
               />
             </label>
+            <a
+              href="https://chub.ai/"
+              target="_blank"
+              rel="noreferrer"
+              title={t("cardImport.findMoreHint")}
+              className="rounded-lg px-3 py-2 text-xs font-medium text-persona-600 underline decoration-persona-300 decoration-dotted underline-offset-4 transition hover:text-persona-700 dark:text-persona-400 dark:decoration-persona-700 dark:hover:text-persona-300"
+            >
+              {t("cardImport.findMore")}
+            </a>
             <button
               onClick={startCreate}
               className="rounded-lg bg-persona-600 px-4 py-2 text-xs font-medium text-white shadow-sm transition hover:bg-persona-700"

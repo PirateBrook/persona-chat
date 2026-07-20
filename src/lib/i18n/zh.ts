@@ -127,6 +127,8 @@ export const zh: Messages = {
   "tag.philosophy": "哲学",
   "tag.roleplay": "角色扮演",
   "tag.companion": "陪伴",
+  "tag.fantasy": "奇幻",
+  "tag.mystery": "推理",
 
   // ---- background preset labels & categories ----
   "bg.bg_slate_focus": "石板专注",
@@ -170,5 +172,7 @@ export const zh: Messages = {
   "cardImport.error.no_embedded_data": "在这张 PNG 里没找到角色数据——需要包含 chara/ccv3 的 tEXt 数据块。",
   "cardImport.error.invalid_json": "无法解析角色卡里的数据，它不是合法的 JSON。",
   "cardImport.error.missing_name": "这张角色卡没有名称字段。",
-  "cardImport.error.unknown": "导入这张角色卡失败。"
+  "cardImport.error.unknown": "导入这张角色卡失败。",
+  "cardImport.findMore": "去找更多角色 ↗",
+  "cardImport.findMoreHint": "在新标签页打开 chub.ai——一个第三方角色卡社区，与本插件无关。在那里下载的角色卡可以用上面的「导入角色卡」导入。"
 }
