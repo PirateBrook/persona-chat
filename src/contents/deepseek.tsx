@@ -49,7 +49,7 @@ export default function DeepSeekOverlay() {
   const [pillToast, setPillToast] = useState<string | null>(null)
   const [tts, setTts] = useState<TtsPreference>(DEFAULT_APP_STATE.tts)
   const [hasAssistantReply, setHasAssistantReply] = useState(false)
-  const { enrich } = usePersonaEnrich(activePersona)
+  const { enrich } = usePersonaEnrich(activePersona, locale)
 
   useEffect(() => {
     void refresh()

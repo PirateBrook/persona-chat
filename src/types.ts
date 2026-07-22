@@ -3,6 +3,25 @@ export type ModeKey = "original" | "image" | "persona" | "tweaks"
 export type Locale = "en" | "zh"
 export type LanguagePref = "auto" | "en" | "zh"
 
+/** How a lore entry maps onto the two injection anchors we actually own (the
+ *  one-time activation message and the per-tap Enrich block). Mirrors
+ *  Character Card V3's `@@position` names, but the semantics are a LOCAL,
+ *  VISIBLE reinterpretation — we can't assemble a real prompt, so a `constant`
+ *  entry with `before_desc`/`after_desc`/`personality`/`scenario` folds into
+ *  the matching slot of the activation message; `at_depth` just means
+ *  "ordered within the Enrich block by `depth`". */
+export type WorldInfoPosition =
+  | "before_desc"
+  | "after_desc"
+  | "personality"
+  | "scenario"
+  | "at_depth"
+
+/** V3 `@@role`. We only have one user input box, so this is NOT a real
+ *  system/assistant turn — it only picks the visible framing label the lore
+ *  block is prefixed with. */
+export type WorldInfoRole = "system" | "user" | "assistant"
+
 export interface WorldInfoEntry {
   id: string
   keys: string[]
@@ -18,6 +37,24 @@ export interface WorldInfoEntry {
    *  mid-conversation) render separately from hand-authored world info in
    *  the options-page editor. Absent/undefined means "authored". */
   source?: "authored" | "memory"
+  /** Character Card V3 `@@position` — see WorldInfoPosition. A `constant`
+   *  (alwaysActive) entry in a description slot folds into the one-time
+   *  activation message instead of repeating on every Enrich. */
+  position?: WorldInfoPosition
+  /** Character Card V3 `@@depth`. NOT history insertion (we can't touch chat
+   *  history) — relative ordering *within* one Enrich message: larger depth
+   *  sits farther from the user's draft (higher up). Absent = 0 (nearest). */
+  depth?: number
+  /** Character Card V3 `@@role` — visible framing label only (see
+   *  WorldInfoRole), never a real message turn. */
+  role?: WorldInfoRole
+  /** Character Card V3 `use_regex` — treat each key as a case-insensitive
+   *  regex against the draft. Invalid patterns fall back to literal substring
+   *  matching. Only ever matches the draft; never rewrites model output. */
+  useRegex?: boolean
+  /** Character Card V3 `insertion_order` — tiebreak among entries at the same
+   *  depth, ascending. Absent = 0. */
+  order?: number
 }
 
 export interface PersonaCard {

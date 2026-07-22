@@ -182,4 +182,29 @@ export const en = {
   "cardImport.findMore": "Find more characters ↗",
   "cardImport.findMoreHint":
     "Opens chub.ai in a new tab — a third-party character card community, not affiliated with us. Cards you download there work with \"Import character card\" above.",
+
+  // ---- world info V3 decorators (options.tsx editor + world-info.ts labels) ----
+  "worldbook.advanced": "Advanced",
+  "worldbook.constant": "Always inject (constant)",
+  "worldbook.constantHint":
+    "Inject regardless of keywords. With a position set below, it folds into the activation message instead of repeating on every enrich.",
+  "worldbook.position": "Position",
+  "worldbook.position.none": "Default (in enrich block)",
+  "worldbook.position.before_desc": "Before persona",
+  "worldbook.position.after_desc": "After persona",
+  "worldbook.position.personality": "With personality",
+  "worldbook.position.scenario": "With scenario",
+  "worldbook.position.at_depth": "By depth",
+  "worldbook.depth": "Depth",
+  "worldbook.depthHint": "Higher sits farther from your draft (ordering only — not chat history).",
+  "worldbook.role": "Role label",
+  "worldbook.role.default": "None (📖)",
+  "worldbook.role.system": "System",
+  "worldbook.role.user": "User",
+  "worldbook.role.assistant": "Assistant",
+  "worldbook.regex": "Match keys as regex",
+  "worldbook.regexHint":
+    "Treat each key as a regular expression. Invalid patterns fall back to plain-text matching.",
+  "worldbook.label.system": "⚙️ System note:",
+  "worldbook.label.assistant": "🎭 In character:",
 } as const

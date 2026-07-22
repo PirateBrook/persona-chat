@@ -174,5 +174,28 @@ export const zh: Messages = {
   "cardImport.error.missing_name": "这张角色卡没有名称字段。",
   "cardImport.error.unknown": "导入这张角色卡失败。",
   "cardImport.findMore": "去找更多角色 ↗",
-  "cardImport.findMoreHint": "在新标签页打开 chub.ai——一个第三方角色卡社区，与本插件无关。在那里下载的角色卡可以用上面的「导入角色卡」导入。"
+  "cardImport.findMoreHint": "在新标签页打开 chub.ai——一个第三方角色卡社区，与本插件无关。在那里下载的角色卡可以用上面的「导入角色卡」导入。",
+
+  // ---- world info V3 decorators (options.tsx editor + world-info.ts labels) ----
+  "worldbook.advanced": "高级",
+  "worldbook.constant": "常驻注入（constant）",
+  "worldbook.constantHint": "无视关键词直接注入。若设置了下面的「位置」，则折叠进激活消息，而不是每次增强都重复注入。",
+  "worldbook.position": "位置",
+  "worldbook.position.none": "默认（在增强块中）",
+  "worldbook.position.before_desc": "人设描述前",
+  "worldbook.position.after_desc": "人设描述后",
+  "worldbook.position.personality": "随性格",
+  "worldbook.position.scenario": "随场景",
+  "worldbook.position.at_depth": "按深度",
+  "worldbook.depth": "深度",
+  "worldbook.depthHint": "越大越远离你的草稿（仅用于排序，不涉及聊天历史）。",
+  "worldbook.role": "角色标签",
+  "worldbook.role.default": "无（📖）",
+  "worldbook.role.system": "系统",
+  "worldbook.role.user": "用户",
+  "worldbook.role.assistant": "角色",
+  "worldbook.regex": "关键词按正则匹配",
+  "worldbook.regexHint": "把每个关键词当作正则表达式；无效则回退为纯文本匹配。",
+  "worldbook.label.system": "⚙️ 系统设定：",
+  "worldbook.label.assistant": "🎭 角色设定："
 }
