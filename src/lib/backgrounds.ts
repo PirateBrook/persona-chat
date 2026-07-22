@@ -572,7 +572,13 @@ function installThemeWatcher(): void {
 
   try {
     const observer = new MutationObserver(onThemeMaybeChanged)
-    const opts: MutationObserverInit = { attributes: true, attributeFilter: ["class", "style", "data-theme"] }
+    // data-mode covers Claude.ai's theme signal (html[data-mode]); class/style/
+    // data-theme cover DeepSeek's. Observing an extra attribute a platform
+    // doesn't use is harmless.
+    const opts: MutationObserverInit = {
+      attributes: true,
+      attributeFilter: ["class", "style", "data-theme", "data-mode"]
+    }
     observer.observe(document.documentElement, opts)
     observer.observe(document.body, opts)
   } catch {

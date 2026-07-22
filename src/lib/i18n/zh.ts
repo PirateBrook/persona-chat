@@ -9,7 +9,7 @@ export const zh: Messages = {
   "wrap.ackPlain": "用角色的口吻简短确认，然后等待我的第一个问题。",
 
   // ---- use-persona-enrich.ts ----
-  "enrich.failed": "增强失败——试试刷新 DeepSeek。",
+  "enrich.failed": "增强失败——试试刷新页面。",
   "enrich.nothingYet": "暂时没有可增强的内容。",
   "enrich.nothingNew": "没有新增内容——直接发送即可。",
   "enrich.loreNote.one": "{count} 条设定",
@@ -49,7 +49,7 @@ export const zh: Messages = {
   "tab.tweaks": "定制",
 
   // ---- PageTweaksPanel.tsx ----
-  "tweaks.blurb": "直接作用于 DeepSeek 页面本身的一些小改造。",
+  "tweaks.blurb": "直接作用于聊天页面本身的一些小改造。",
   "tweaks.hideThinking": "隐藏思考过程",
   "tweaks.hideThinkingDesc": "折叠 DeepSeek 的「已思考」区块——最终回答仍会正常显示。",
 
@@ -72,8 +72,8 @@ export const zh: Messages = {
   "confirm.deleteBackground": "确定删除这张背景图片吗？",
 
   // ---- popup.tsx ----
-  "popup.activeOn": "正在 chat.deepseek.com 上使用",
-  "popup.hint": "打开 chat.deepseek.com——Persona 按钮会出现在右下角。",
+  "popup.activeOn": "已在支持的站点使用",
+  "popup.hint": "打开支持的站点（chat.deepseek.com 或 claude.ai）——Persona 按钮会出现在右下角。",
   "popup.manage": "管理角色",
 
   // ---- options.tsx ----

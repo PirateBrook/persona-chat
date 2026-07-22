@@ -2,7 +2,7 @@
 
 对标 `docs/deepseek-dom-notes.md`。**方向1（Claude.ai adapter）的 Phase 0 前置门**：adapter/content-script 的所有真实 selector 一律以本文件为准，不预设已知（研究已证伪 `data-testid` 稳定性）。
 
-> 状态：**待勘察**（用户选择"先准备，晚点再跑"）。下面第 0 节是采集探针，第 1–8 节是待填结果，最后一节是"填完即可动手"的 adapter 实现清单。
+> 状态：**已勘察完成**（2026-07-22，CDP 真机验证，Claude build `d8ab11fbd8`，`colorVersion v2`）。第 1–8 节为勘察结果，最后一节是 adapter 实现清单（selector 已回填，可直接动手）。
 
 ---
 
@@ -118,36 +118,43 @@ cat docs/claude-phase0-probe.txt | agent-browser --cdp 9222 eval --stdin
 ---
 
 ## 1. Host（决定 REGISTRY key + manifest/content-script match）
-- 实际 hostname：`____`（`claude.ai` 单一？是否也需 `www.claude.ai`？）
-- 对话页 URL 形态：`____`
+- 实际 hostname：**`claude.ai` 单一**（未见 `www.` 重定向）。
+- URL 形态：新对话 `https://claude.ai/new`；对话 `https://claude.ai/chat/<uuid>`。
+- → REGISTRY key `"claude.ai"`；manifest `host_permissions` + content-script `matches` 均 `https://claude.ai/*`。
 
-## 2. 输入框（ProseMirror contenteditable）
-- 命中的最稳 selector（"具体→通用"，**不含 data-testid**）：`____`
-- `execCommand("insertText")` 能否真正填入、不拆段：`____`
-- 注入后 `input` 事件 → 发送按钮是否变可用：`____`
-- `innerText`/`textContent` 读草稿是否准确：`____`
+## 2. 输入框（ProseMirror / Tiptap contenteditable）✅
+- 最稳 selector（"具体→通用"）：`div.ProseMirror[contenteditable="true"]` → `div[contenteditable="true"][role="textbox"]` → `div[contenteditable="true"]`。（元素 class = `tiptap ProseMirror`，`role="textbox"`；另有 `data-testid="chat-input"` 但**不依赖**。）
+- `execCommand("insertText")`：**可用**（`execReturned:true`，文本完整落入）。**多行实测**：内容全部保留，但 ProseMirror 把每个 `\n` 当段落分隔——innerText 里单换行会变双换行（发 3 个 `\n` → 读回 7 个）。**语义完整、仅排版偏松**，MVP 可接受；若要精确单换行需改 soft-break（Shift+Enter 语义），本轮不做。
+- 注入后 `dispatch input(bubbles)` → 存在启用的 `type="submit"` 按钮（Claude 已"看到"文本，人类可按 Enter 发送）。
+- `innerText` 读草稿：**准确**（读回 `PERSONA_CHAT_PROBE`）；清空复原正常。
+- → 直接复用 `deepseek.ts` 的 `setContentEditableValue`（selectAll + execCommand insertText + input 事件，失败 clipboard fallback）；`readDraftText` 用 `el.innerText`。
 
-## 3. 助手消息容器（TTS 取最近回复 + Enrich pill 判断有无回复）
-- Claude 版 `ASSISTANT_REPLY_SELECTOR`：`____`
-- 消息列表是否虚拟化（决定是否必须 MutationObserver）：`____`
+## 3. 助手消息容器 ✅
+- **`ASSISTANT_REPLY_SELECTOR` = `div.font-claude-response`**（干净答案文本块；等价 DeepSeek `.ds-assistant-message-main-content`）。
+- 回合外层：`[data-is-streaming]`（`"true"`/`"false"` 标流式状态，可判断回复是否完成）。
+- 用户消息：`[data-testid="user-message"]` / class 含 `!font-user-message`。
+- 注意：回合外层含一个 `<h2 class="sr-only">Claude responded: …</h2>` 无障碍前缀——TTS 用 `font-claude-response`（不含该前缀），别用外层。
+- 虚拟化未定论（本对话 2 回合全在 DOM）；**保留 MutationObserver**（照搬 deepseek.tsx）最稳。
 
-## 4. 发送区布局（右下角 pill/FloatingButton 的 fixed 定位是否碰撞）
-- Claude 输入区/发送按钮位置与尺寸：`____`
-- 建议的安全偏移（bottom/right）：`____`
+## 4. 发送区布局
+- 输入框在底部居中（有 max-width），/new 时 rect ≈ x683 y368 w636 h22（随内容增高）；toolbar 在 `fieldset` 内（5 个按钮：加文件/工具/模型等）。
+- 我们的 pill/FloatingButton 走 `fixed` 右下角（现 `bottom-[4.6rem] right-6`）——Claude 输入居中、右侧有留白，**大概率不碰撞**；窄窗口需截图确认。MVP 沿用 DeepSeek 偏移，验收截图时核对。
 
-## 5. 主题判定（深/浅）
-- `getComputedStyle(body).colorScheme` 是否报 dark/light：`____`
-- 若不可用，稳定信号（html 的 class / `data-theme` / `data-mode`）：`____`
+## 5. 主题判定 ✅
+- `getComputedStyle(document.body).colorScheme` **报 `"dark"`**（和 DeepSeek 一样能用！）。
+- 稳定兜底：`html[data-mode="dark"|"light"]`、`html[data-theme="claude"]`。
+- → `detectTheme()` 可复用"读 body.colorScheme"主路径；可加 `html[data-mode]` 兜底。**无需 Claude 专属主题逻辑**。
 
-## 6. 背景可见性（能否在 html,body 设 background-image 透出）
-- 在 `html, body` 设背景能否透出到聊天区背后：`____`
-- 若被不透明容器盖住：需中和的容器 + 其 CSS 变量 / `:has()` 命中方式（Claude 版 `--dsw-alias-bg-layer-1` 对应物，**不追 hash 类名**）：`____`
+## 6. 背景可见性 ✅（Q2：不用降级）
+- 从助手消息一路到 body（23 层）**唯一不透明层 = `body`**（`bg-bg-100` → `rgb(31,31,30)`）；html 透明（`rgba(0,0,0,0)`），中间**无不透明滚动容器**。
+- → 现有 `applyBackground`（在 `html, body` 设 `background-image !important`）**应能直接透出**，比 DeepSeek 干净。**几乎不需要 Claude 专属容器中和**。
+- 备注：Claude 用 Tailwind 语义 token（`bg-bg-100`=`--bg-100`，类似 DeepSeek `--dsw-alias-*`）；不去覆盖 `--bg-100`（会波及侧栏/卡片），直接靠 body background-image 叠在 body 底色之上即可。真机贴一张背景截图复核对比度。
 
-## 7.（可选）扩展思考块 DOM（若要移植 hide-thinking）
-- 稳定选择器：`____`（否则 MVP 按 FR-8 在 Claude 隐藏该开关/Tweaks tab）
+## 7. 扩展思考块 DOM（hide-thinking）
+- 未勘察（需带 extended-thinking 的对话）。→ **MVP 按 FR-8：在 claude.ai 隐藏该开关/Tweaks tab**（Q3 推荐），不本轮补规则。
 
-## 8.（记录备用）会话 URL 形态（为后续方向5留档，不阻塞本方向）
-- `____`
+## 8. 会话 URL 形态（为后续方向5留档）
+- `https://claude.ai/chat/<uuid>`（含稳定会话 id，方向5 对话级隔离可用）。
 
 ---
 

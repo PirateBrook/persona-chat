@@ -1,5 +1,6 @@
 import type { FC } from "react"
 
+import { getActiveAdapter } from "../lib/adapters"
 import { useI18n } from "../lib/i18n"
 import type { PageTweaks } from "../types"
 
@@ -10,6 +11,11 @@ interface Props {
 
 export const PageTweaksPanel: FC<Props> = ({ tweaks, onChange }) => {
   const { t } = useI18n()
+
+  // The only tweak (hideThinking) targets DeepSeek's own reasoning-trace DOM
+  // (.ds-think-content), absent on other platforms — so on any non-DeepSeek
+  // host there's nothing to show here. The Tweaks tab still renders TTS below.
+  if (getActiveAdapter()?.id !== "deepseek") return null
 
   return (
     <div className="px-4 pb-2 pt-3">

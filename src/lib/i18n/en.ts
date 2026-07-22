@@ -12,7 +12,7 @@ export const en = {
   "wrap.ackPlain": "Acknowledge briefly in character, then wait for my first question.",
 
   // ---- use-persona-enrich.ts ----
-  "enrich.failed": "Couldn't enrich — try refreshing DeepSeek.",
+  "enrich.failed": "Couldn't enrich — try refreshing the page.",
   "enrich.nothingYet": "Nothing to enrich yet.",
   "enrich.nothingNew": "Nothing new — send as-is.",
   "enrich.loreNote.one": "{count} lore note",
@@ -52,7 +52,7 @@ export const en = {
   "tab.tweaks": "Tweaks",
 
   // ---- PageTweaksPanel.tsx ----
-  "tweaks.blurb": "Small DOM tweaks applied directly to the DeepSeek page.",
+  "tweaks.blurb": "Small DOM tweaks applied directly to the chat page.",
   "tweaks.hideThinking": "Hide reasoning trace",
   "tweaks.hideThinkingDesc": "Collapses DeepSeek's \"Thought for Ns\" block — the final answer still shows.",
 
@@ -75,8 +75,8 @@ export const en = {
   "confirm.deleteBackground": "Delete this background image?",
 
   // ---- popup.tsx ----
-  "popup.activeOn": "Active on chat.deepseek.com",
-  "popup.hint": "Open chat.deepseek.com — the Persona button appears bottom-right.",
+  "popup.activeOn": "Active on supported sites",
+  "popup.hint": "Open a supported chat site (chat.deepseek.com or claude.ai) — the Persona button appears bottom-right.",
   "popup.manage": "Manage personas",
 
   // ---- options.tsx ----

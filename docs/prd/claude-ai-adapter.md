@@ -175,4 +175,28 @@
 4. **上架范围与营销**：确认只上 `claude.ai`（非 `www.` / 其它子域）；商店 `displayName`/`description`（现写 "for chat.deepseek.com"）需改为多平台措辞——是否本轮一并更新商店素材，还是单独 publish 任务？
 
 ## 8. 验证结果（研发+测试后回填）
-（pc-test 完成后写这里，或单独 `docs/prd/claude-ai-adapter-verification.md`）
+
+**状态**：已实现，`tsc --noEmit` 干净、`pnpm build` 干净（2.2s）。构建 manifest 核验：`host_permissions` = deepseek + `claude.ai`，2 个 content script（claude.ai / deepseek），API `permissions` 未新增（仍 `storage`/`unlimitedStorage`/`tts`）。
+
+**Phase 0（CDP 真机勘察，claude.ai build `d8ab11fbd8`）** → 全部结果落盘 `docs/claude-dom-notes.md`。关键确认：
+- 输入框 `div.ProseMirror[contenteditable="true"]`；`execCommand("insertText")` 可用、`innerText` 读草稿准确、写入即清除复原正常。
+- **多行注入实测**：内容完整保留；ProseMirror 把单 `\n` 当段落分隔（读回换行翻倍）——语义完整、排版偏松，MVP 接受（见 dom-notes §2）。
+- 助手消息 `div.font-claude-response`；主题 `getComputedStyle(body).colorScheme="dark"`（同 DeepSeek 可用）；背景 body 单层不透明、无中间遮挡容器 → 现有 `applyBackground` 应直接透出。
+
+**实现要点**：抽 `adapters/dom-inject.ts` 共享注入原语（deepseek/claude 复用）；抽 `components/PlatformOverlay.tsx` 共享 content-script 主体（deepseek.tsx/claude.tsx 薄壳，仅传 `assistantReplySelector`）；`backgrounds.ts` 仅给主题 watcher 加 `data-mode`（DeepSeek 无影响）；`PageTweaksPanel` 在非 DeepSeek 隐藏 hideThinking；i18n 泛化 4 条写死 DeepSeek 的文案。**零新增 storage 字段**（Q1 全局共享）。
+
+| # | 验收标准 | 手段 | 结果 |
+|---|---|---|---|
+| 1 | adapter 注入/读取字符串逻辑 | 复用已验证 dom-inject（DeepSeek 同源）+ Phase 0 真机 eval | ✅ |
+| 2 | 世界书匹配/拼装（复用） | 逻辑未改（方向3 已 Node 验证） | ✅ |
+| 3 | storage 往返（无新字段） | 无新字段，全局 AppState 共享 | ✅ N/A |
+| 4 | claude.ai 真机：注入 ProseMirror + 背景渲染 | 自动化扩展级 E2E（`e2e-verify.sh claude`，真实加载扩展、穿透 shadow root 开面板→应用人设→读输入框） | ✅ **PASS**：人设包装消息注入 ProseMirror、背景样式生成含 image（换行翻倍见 dom-notes §2） |
+| 5 | DeepSeek 无回归（动了 adapter/overlay/背景 seam） | 自动化扩展级 E2E（`e2e-verify.sh deepseek`） | ✅ **PASS**：textarea 注入干净、背景生效、清空正常 |
+| 6 | tsc / build | — | ✅ 干净 |
+| 7 | 过审无新风险（仅多一个明确 host） | manifest 核验，无新 API 权限/网络 | ✅（`extension-review` 复扫待跑） |
+
+**开放决策落定**：Q1 全局共享（已实现）；Q3 = MVP 在 Claude 隐藏 hideThinking（已实现）；Q2 背景无需降级（Phase 0 确认可透出）；Q4 商店文案更新 = 待办（见下）。
+
+**扩展级 E2E 已完成**（两平台自动化，见验收 4/5）——自动化谐子固化进 `pc-test`（`scripts/launch-with-extension.sh` + `scripts/e2e-verify.sh`，playbook「C+」）。
+
+**待补（非阻塞收尾）**：① `extension-review`/`analyze` 复扫（对照基线，仅多一个明确 host、无新 API 权限/网络，应仍 PASS）；② 更新 `docs/chrome-web-store-listing.md` 权限说明 + 商店 `description`（Q4，多平台措辞）。世界书 Enrich 注入变体本轮以"人设激活注入"覆盖同一 adapter 路径，未单独跑（playbook C+ 有扩展做法）。

@@ -3,17 +3,17 @@ import type { PlasmoCSConfig, PlasmoGetShadowHostId, PlasmoGetStyle } from "plas
 
 import { PlatformOverlay } from "~components/PlatformOverlay"
 
-/** DeepSeek's own stable design-system class for a rendered assistant reply
- *  (see docs/deepseek-dom-notes.md). The message list is virtualized, so the
- *  overlay tracks presence live via MutationObserver rather than reading once. */
-const ASSISTANT_REPLY_SELECTOR = ".ds-assistant-message-main-content"
+/** Claude.ai's assistant reply text block — the clean answer body, without the
+ *  screen-reader "Claude responded:" prefix that wraps it (see
+ *  docs/claude-dom-notes.md). */
+const ASSISTANT_REPLY_SELECTOR = "div.font-claude-response"
 
 export const config: PlasmoCSConfig = {
-  matches: ["https://chat.deepseek.com/*"],
+  matches: ["https://claude.ai/*"],
   all_frames: false
 }
 
-export const getShadowHostId: PlasmoGetShadowHostId = () => "persona-chat-root"
+export const getShadowHostId: PlasmoGetShadowHostId = () => "persona-chat-root-claude"
 
 export const getStyle: PlasmoGetStyle = () => {
   const style = document.createElement("style")
@@ -21,6 +21,6 @@ export const getStyle: PlasmoGetStyle = () => {
   return style
 }
 
-export default function DeepSeekOverlay() {
+export default function ClaudeOverlay() {
   return <PlatformOverlay assistantReplySelector={ASSISTANT_REPLY_SELECTOR} />
 }
