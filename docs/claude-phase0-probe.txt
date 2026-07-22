@@ -1,0 +1,66 @@
+(() => {
+  const out = { note: "claude.ai phase-0 readonly probe" };
+  const desc = (el) => {
+    if (!el) return null;
+    const r = el.getBoundingClientRect();
+    return {
+      tag: el.tagName.toLowerCase(), id: el.id || null,
+      class: (el.className && el.className.toString().slice(0, 200)) || null,
+      contenteditable: el.getAttribute("contenteditable"),
+      role: el.getAttribute("role"),
+      dataTestid: el.getAttribute("data-testid"),
+      placeholder: el.getAttribute("data-placeholder") || el.getAttribute("placeholder") || null,
+      rect: { w: Math.round(r.width), h: Math.round(r.height), x: Math.round(r.x), y: Math.round(r.y) },
+      visible: r.width > 0 && r.height > 0,
+      textSample: (el.innerText || "").slice(0, 80)
+    };
+  };
+  out.location = { hostname: location.hostname, href: location.href, pathname: location.pathname };
+  const inputSel = [
+    'div[contenteditable="true"].ProseMirror',
+    'div.ProseMirror[contenteditable="true"]',
+    'div[contenteditable="true"][role="textbox"]',
+    'div[contenteditable="true"]',
+    "textarea"
+  ];
+  out.inputCandidates = inputSel.map((sel) => {
+    let els = []; try { els = Array.from(document.querySelectorAll(sel)); } catch (e) {}
+    return { selector: sel, count: els.length, first: desc(els[0]) };
+  });
+  out.theme = {
+    bodyColorScheme: getComputedStyle(document.body).colorScheme,
+    htmlColorScheme: getComputedStyle(document.documentElement).colorScheme,
+    htmlClass: document.documentElement.className.slice(0, 300),
+    htmlDataset: Object.assign({}, document.documentElement.dataset),
+    bodyDataset: Object.assign({}, document.body.dataset),
+    prefersDark: matchMedia("(prefers-color-scheme: dark)").matches,
+    bodyBg: getComputedStyle(document.body).backgroundColor,
+    htmlBg: getComputedStyle(document.documentElement).backgroundColor
+  };
+  const cx = Math.floor(innerWidth / 2), cy = Math.floor(innerHeight / 2);
+  const centerEl = document.elementFromPoint(cx, cy);
+  out.centerElement = desc(centerEl);
+  const opaque = [];
+  let node = centerEl, hops = 0;
+  while (node && node !== document.documentElement && hops < 30) {
+    const cs = getComputedStyle(node);
+    const bg = cs.backgroundColor, bgImg = cs.backgroundImage;
+    const isOpaque = bg && bg !== "rgba(0, 0, 0, 0)" && bg !== "transparent";
+    if (isOpaque || (bgImg && bgImg !== "none")) {
+      opaque.push({ tag: node.tagName.toLowerCase(), class: (node.className || "").toString().slice(0, 120), dataTestid: node.getAttribute("data-testid"), bg, bgImg: bgImg.slice(0, 60) });
+    }
+    node = node.parentElement; hops++;
+  }
+  out.opaqueBackgroundAncestors = opaque;
+  const msgSel = ['div.font-claude-message', '[data-testid*="message"]', 'div[class*="message"]', "div.prose", "[data-is-streaming]"];
+  out.messageCandidates = msgSel.map((sel) => {
+    let els = []; try { els = Array.from(document.querySelectorAll(sel)); } catch (e) {}
+    return { selector: sel, count: els.length, lastTextSample: els.length ? (els[els.length - 1].innerText || "").slice(0, 80) : null };
+  });
+  const sendSel = ['button[aria-label*="Send" i]', 'button[data-testid*="send" i]', 'fieldset button', 'button[type="submit"]'];
+  out.sendCandidates = sendSel.map((sel) => {
+    let els = []; try { els = Array.from(document.querySelectorAll(sel)); } catch (e) {}
+    return { selector: sel, count: els.length, first: els[0] ? { ariaLabel: els[0].getAttribute("aria-label"), disabled: els[0].disabled } : null };
+  });
+  return JSON.stringify(out, null, 2);
+})()
