@@ -35,6 +35,7 @@ export const en = {
   "common.delete": "Delete",
   "common.save": "Save",
   "common.cancel": "Cancel",
+  "common.duplicate": "Duplicate",
 
   // ---- PersonaPanel.tsx ----
   "panel.deactivate": "Deactivate",
@@ -64,6 +65,11 @@ export const en = {
   "list.worldInfoTitle.other": "{count} world info entries",
   "list.apply": "Apply →",
   "list.noMatch": 'No personas match "{query}".',
+  "list.pinned": "Pinned",
+  "list.recent": "Recent",
+  "list.all": "All",
+  "list.pin": "Pin to top",
+  "list.unpin": "Unpin",
 
   // ---- BackgroundPicker.tsx ----
   "bg.blurb": "Sets the scene behind the chat. Purely visual — never touches what gets sent.",
@@ -84,6 +90,7 @@ export const en = {
   "options.export": "Export backup",
   "options.import": "Import backup",
   "options.new": "+ New persona",
+  "options.copyName": "{name} (copy)",
   "options.listHeading": "Personas ({count})",
   "options.worldInfoCount.one": "📖 {count} world info entry",
   "options.worldInfoCount.other": "📖 {count} world info entries",
@@ -98,7 +105,12 @@ export const en = {
   "field.greeting": "Greeting (optional)",
   "field.driftReminder":
     "In-character reminder (optional) — resurfaces every few enrich-taps to fight drift",
-  "field.background": "Background (optional)",
+  "field.background": "Background preset (optional)",
+  "field.backgroundImage": "Scene background image (optional)",
+  "field.backgroundImage.upload": "Upload image",
+  "field.backgroundImage.replace": "Replace",
+  "field.backgroundImage.hint":
+    "Overrides the preset above — applied when you switch to this persona.",
   "placeholder.exampleDialogue": "User: ...\nCharacter: ...",
   "placeholder.keys": "keys, comma, separated",
   "placeholder.loreContent": "Lore to inject when a key matches the draft message",

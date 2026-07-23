@@ -12,7 +12,9 @@ import {
   getAppState,
   listCustomBackgrounds,
   makeCustomBackgroundId,
+  markPersonaUsed,
   setAppState,
+  setPersonaPinned,
   upsertCustomBackground
 } from "../storage"
 import {
@@ -160,11 +162,20 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
 
   async function handleApply(persona: PersonaCard) {
     const result = await applyPersona(persona, locale)
+    // A persona's own uploaded background image (sentinel id) wins over a
+    // referenced preset/custom background.
+    const background = persona.backgroundImageDataUrl
+      ? `persona:${persona.id}`
+      : (persona.backgroundId ?? null)
     const next = await setAppState({
       activePersonaId: persona.id,
-      ...(persona.backgroundId ? { activeBackgroundId: persona.backgroundId } : {})
+      ...(background ? { activeBackgroundId: background } : {})
     })
     setState(next)
+    // Record usage for most-recently-used ordering. The `personas` storage
+    // change re-runs ensureSeeds via the subscription above, re-sorting the
+    // list (this persona floats to the top).
+    void markPersonaUsed(persona.id)
 
     if (result.ok && result.method === "dom-injection") {
       showToast(t("toast.ready"))
@@ -175,9 +186,20 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
     }
   }
 
+  async function handleTogglePin(persona: PersonaCard) {
+    // The resulting `personas` storage change re-runs ensureSeeds via the
+    // subscription above, which re-sorts and re-renders the list.
+    await setPersonaPinned(persona.id, !persona.pinned)
+  }
+
+  async function handleTagFilterChange(tag: string | null) {
+    const next = await setAppState({ personaTagFilter: tag })
+    setState(next)
+  }
+
   if (contextInvalidated) {
     return (
-      <div className="flex h-full flex-col font-sans">
+      <div className="flex min-h-0 flex-1 flex-col font-sans">
         <header className="flex items-center justify-between px-4 py-3">
           <span className="text-sm font-semibold tracking-tight">Persona</span>
           <button
@@ -224,7 +246,7 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
   const tts: TtsPreference = state.tts ?? DEFAULT_APP_STATE.tts
 
   return (
-    <div className="relative flex h-full flex-col font-sans">
+    <div className="relative flex min-h-0 flex-1 flex-col font-sans">
       <header className="flex items-center justify-between px-4 pt-3">
         <div className="flex items-center gap-2">
           <span className="h-2 w-2 rounded-full bg-gradient-to-br from-persona-400 to-persona-600" />
@@ -252,20 +274,20 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
             <div className="truncate text-xs font-medium text-gray-900 dark:text-gray-100">
               {activePersona.name}
             </div>
-            <div className="text-[10px] text-persona-600 dark:text-persona-300">
+            <div className="text-[11px] text-persona-600 dark:text-persona-300">
               {t("common.active")}
             </div>
           </div>
           <button
             onClick={handleDeactivate}
-            className="rounded-md px-2 py-1 text-[10px] font-medium text-gray-500 transition hover:bg-white hover:text-gray-800 hover:shadow-sm dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
+            className="rounded-md px-2 py-1 text-[11px] font-medium text-gray-500 transition hover:bg-white hover:text-gray-800 hover:shadow-sm dark:text-gray-400 dark:hover:bg-gray-800 dark:hover:text-gray-100"
           >
             {t("panel.deactivate")}
           </button>
         </div>
       )}
 
-      <main className="scrollbar-slim mt-1 flex-1 overflow-y-auto pb-2">
+      <main className="scrollbar-slim mt-1 min-h-0 flex-1 overflow-y-auto pb-2">
         {effectiveMode === "image" && (
           <BackgroundPicker
             activeBackgroundId={state.activeBackgroundId}
@@ -279,7 +301,10 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
           <PersonaList
             personas={personas}
             activePersonaId={state.activePersonaId}
+            tagFilter={state.personaTagFilter ?? null}
             onApply={handleApply}
+            onTogglePin={handleTogglePin}
+            onTagFilterChange={handleTagFilterChange}
           />
         )}
         {effectiveMode === "tweaks" && (

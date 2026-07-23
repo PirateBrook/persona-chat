@@ -32,6 +32,7 @@ export const zh: Messages = {
   "common.delete": "删除",
   "common.save": "保存",
   "common.cancel": "取消",
+  "common.duplicate": "复制",
 
   // ---- PersonaPanel.tsx ----
   "panel.deactivate": "停用",
@@ -61,6 +62,11 @@ export const zh: Messages = {
   "list.worldInfoTitle.other": "{count} 条世界设定",
   "list.apply": "应用 →",
   "list.noMatch": "没有匹配「{query}」的角色。",
+  "list.pinned": "已固定",
+  "list.recent": "最近使用",
+  "list.all": "全部",
+  "list.pin": "固定到顶部",
+  "list.unpin": "取消固定",
 
   // ---- BackgroundPicker.tsx ----
   "bg.blurb": "为对话设置背景氛围。纯视觉效果——绝不影响实际发送的内容。",
@@ -81,6 +87,7 @@ export const zh: Messages = {
   "options.export": "导出备份",
   "options.import": "导入备份",
   "options.new": "+ 新建角色",
+  "options.copyName": "{name}（副本）",
   "options.listHeading": "角色（{count}）",
   "options.worldInfoCount.one": "📖 {count} 条世界设定",
   "options.worldInfoCount.other": "📖 {count} 条世界设定",
@@ -94,7 +101,11 @@ export const zh: Messages = {
   "field.exampleDialogue": "示例对话（可选）——锁定语气 / 风格",
   "field.greeting": "开场白（可选）",
   "field.driftReminder": "角色提醒（可选）——每隔几次增强就重现一次，防止角色跑偏",
-  "field.background": "背景（可选）",
+  "field.background": "背景预设（可选）",
+  "field.backgroundImage": "场景背景图片（可选）",
+  "field.backgroundImage.upload": "上传图片",
+  "field.backgroundImage.replace": "替换",
+  "field.backgroundImage.hint": "会覆盖上面的预设——切换到该人设时自动应用。",
   "placeholder.exampleDialogue": "用户：……\n角色：……",
   "placeholder.keys": "关键词，用逗号分隔",
   "placeholder.loreContent": "当关键词匹配到草稿内容时注入的设定",

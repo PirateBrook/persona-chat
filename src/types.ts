@@ -73,6 +73,11 @@ export interface PersonaCard {
   driftReminder?: string
   worldInfo?: WorldInfoEntry[]
   backgroundId?: string
+  /** A persona's own scene background image (data URL, downscaled the same way
+   *  as `avatarImageDataUrl`). Travels with the persona on export/import;
+   *  applying the persona switches the page background to it. Takes priority
+   *  over `backgroundId` (which references a shared preset / custom background). */
+  backgroundImageDataUrl?: string
   /** Original card author, kept for attribution when importing a
    *  community character card (Character Card V2/V3 `creator`). Absent on
    *  hand-authored/seed cards. */
@@ -92,6 +97,12 @@ export interface PersonaCard {
   tags: string[]
   createdAt: number
   updatedAt: number
+  /** When the persona was last applied ("Apply"). Drives most-recently-used
+   *  ordering. Set via markPersonaUsed, which deliberately does NOT bump
+   *  updatedAt (applying isn't editing). Absent = never used. */
+  lastUsedAt?: number
+  /** User-pinned to the top of the persona list for quick access. */
+  pinned?: boolean
 }
 
 /** A user-uploaded background image (downscaled + re-encoded client-side
@@ -131,6 +142,9 @@ export interface AppState {
   language: LanguagePref
   pageTweaks: PageTweaks
   tts: TtsPreference
+  /** Last tag filter chosen in the persona list, remembered across panel
+   *  reopens. `null` = no filter. */
+  personaTagFilter?: string | null
 }
 
 export const DEFAULT_APP_STATE: AppState = {
@@ -140,5 +154,6 @@ export const DEFAULT_APP_STATE: AppState = {
   panelOpen: false,
   language: "auto",
   pageTweaks: { hideThinking: false },
-  tts: { enabled: false }
+  tts: { enabled: false },
+  personaTagFilter: null
 }

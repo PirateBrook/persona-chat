@@ -19,7 +19,7 @@ export const PageTweaksPanel: FC<Props> = ({ tweaks, onChange }) => {
 
   return (
     <div className="px-4 pb-2 pt-3">
-      <p className="mb-3 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
+      <p className="mb-3 text-[12px] leading-relaxed text-gray-500 dark:text-gray-400">
         {t("tweaks.blurb")}
       </p>
       <label className="flex cursor-pointer items-start justify-between gap-3 rounded-xl border border-gray-100 px-3 py-2.5 dark:border-gray-800">
@@ -27,7 +27,7 @@ export const PageTweaksPanel: FC<Props> = ({ tweaks, onChange }) => {
           <span className="block text-xs font-medium text-gray-900 dark:text-gray-100">
             {t("tweaks.hideThinking")}
           </span>
-          <span className="block text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
+          <span className="block text-[12px] leading-relaxed text-gray-500 dark:text-gray-400">
             {t("tweaks.hideThinkingDesc")}
           </span>
         </span>

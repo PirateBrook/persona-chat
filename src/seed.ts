@@ -1,4 +1,4 @@
-import { getPersonaMap, setPersonaMap } from "./storage"
+import { comparePersonas, getPersonaMap, setPersonaMap } from "./storage"
 import type { Locale, PersonaCard, WorldInfoEntry } from "./types"
 
 /**
@@ -3628,7 +3628,18 @@ export async function ensureSeeds(locale: Locale): Promise<PersonaCard[]> {
     const current = map[seed.id]
     if (current?.isCustomized) continue
     const expanded = expandSeed(seed, locale, now)
-    const candidate = current ? { ...expanded, createdAt: current.createdAt } : expanded
+    // Preserve usage/pin state across a seed refresh (locale change), same as
+    // createdAt — otherwise applying or pinning a non-customized seed would be
+    // wiped on the next re-expansion. Only carried when set, so seeds that
+    // were never used/pinned still compare equal and skip the write below.
+    const candidate: PersonaCard = current
+      ? {
+          ...expanded,
+          createdAt: current.createdAt,
+          ...(current.lastUsedAt !== undefined ? { lastUsedAt: current.lastUsedAt } : {}),
+          ...(current.pinned !== undefined ? { pinned: current.pinned } : {})
+        }
+      : expanded
     // Skip the write entirely when nothing but the timestamp would change —
     // this function now runs on every `personas` storage event (not just
     // mount/locale-change, see PersonaPanel.tsx), so unconditionally
@@ -3644,7 +3655,7 @@ export async function ensureSeeds(locale: Locale): Promise<PersonaCard[]> {
   if (changed) await setPersonaMap(map)
   // Sort from the in-memory map (same ordering listPersonas uses) instead of
   // re-reading storage — map already holds the exact post-write state.
-  return Object.values(map).sort((a, b) => b.updatedAt - a.updatedAt)
+  return Object.values(map).sort(comparePersonas)
 }
 
 /** Structural equality, ignoring key order (unlike a raw JSON.stringify

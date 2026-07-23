@@ -26,7 +26,7 @@ export const TtsPanel: FC<Props> = ({ tts, onChange }) => {
           <span className="block text-xs font-medium text-gray-900 dark:text-gray-100">
             {t("tts.enable")}
           </span>
-          <span className="block text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
+          <span className="block text-[12px] leading-relaxed text-gray-500 dark:text-gray-400">
             {t("tts.enableDesc")}
           </span>
         </span>

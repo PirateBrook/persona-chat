@@ -9,6 +9,7 @@ import {
   parseCharacterCardFile
 } from "~lib/character-card-import"
 import { useI18n, type MessageKey } from "~lib/i18n"
+import { resizeImageFile } from "~lib/image-resize"
 import { INPUT_BASE_CLS } from "~lib/styles"
 import { ensureSeeds } from "~seed"
 import {
@@ -111,10 +112,37 @@ export default function Options() {
     await refresh()
   }
 
+  async function handleBackgroundImageUpload(file: File) {
+    let dataUrl: string
+    try {
+      dataUrl = await resizeImageFile(file)
+    } catch {
+      alert(t("bg.custom.uploadFailed"))
+      return
+    }
+    setEditing((prev) => (prev ? { ...prev, backgroundImageDataUrl: dataUrl } : prev))
+  }
+
   async function remove(id: string) {
     if (!confirm(t("confirm.delete"))) return
     await deletePersona(id)
     if (editing?.id === id) setEditing(null)
+    await refresh()
+  }
+
+  async function duplicatePersona(p: PersonaCard) {
+    const now = Date.now()
+    await upsertPersona({
+      ...p,
+      id: makePersonaId(),
+      name: t("options.copyName", { name: p.name }),
+      // A fresh copy the user owns — not pinned, never used, editable.
+      pinned: false,
+      lastUsedAt: undefined,
+      isCustomized: true,
+      createdAt: now,
+      updatedAt: now
+    })
     await refresh()
   }
 
@@ -146,6 +174,14 @@ export default function Options() {
           id: makePersonaId(),
           name: card.name,
           avatarEmoji: card.avatarEmoji || "🎭",
+          // Carry embedded images through a backup round-trip (both were
+          // previously dropped, silently losing portraits/backgrounds).
+          avatarImageDataUrl:
+            typeof card.avatarImageDataUrl === "string" ? card.avatarImageDataUrl : undefined,
+          backgroundImageDataUrl:
+            typeof card.backgroundImageDataUrl === "string"
+              ? card.backgroundImageDataUrl
+              : undefined,
           personaPrompt: card.personaPrompt,
           scenario: card.scenario,
           exampleDialogue: card.exampleDialogue,
@@ -339,7 +375,7 @@ export default function Options() {
                         {p.personaPrompt}
                       </div>
                       {(p.worldInfo?.length ?? 0) > 0 && (
-                        <div className="mt-1 text-[10px] text-persona-600">
+                        <div className="mt-1 text-[11px] text-persona-600">
                           {tp("options.worldInfoCount", p.worldInfo!.length)}
                         </div>
                       )}
@@ -350,6 +386,12 @@ export default function Options() {
                         className="rounded px-2 py-1 text-xs text-persona-600 hover:bg-persona-50 dark:hover:bg-gray-800"
                       >
                         {t("common.edit")}
+                      </button>
+                      <button
+                        onClick={() => duplicatePersona(p)}
+                        className="rounded px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                      >
+                        {t("common.duplicate")}
                       </button>
                       <button
                         onClick={() => remove(p.id)}
@@ -402,7 +444,7 @@ export default function Options() {
                   </div>
                 </FormField>
                 {(editing.creator || editing.creatorNotes) && (
-                  <p className="rounded-lg bg-gray-50 px-3 py-2 text-[11px] leading-relaxed text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
+                  <p className="rounded-lg bg-gray-50 px-3 py-2 text-[12px] leading-relaxed text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
                     {editing.creator && (
                       <span className="block font-medium text-gray-600 dark:text-gray-300">
                         {t("cardImport.creatorLabel", { name: editing.creator })}
@@ -477,6 +519,45 @@ export default function Options() {
                     ))}
                   </select>
                 </FormField>
+                <FormField label={t("field.backgroundImage")}>
+                  <div className="flex items-center gap-2">
+                    {editing.backgroundImageDataUrl && (
+                      <img
+                        src={editing.backgroundImageDataUrl}
+                        alt=""
+                        className="h-9 w-14 shrink-0 rounded object-cover"
+                      />
+                    )}
+                    <label className="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800">
+                      {editing.backgroundImageDataUrl
+                        ? t("field.backgroundImage.replace")
+                        : t("field.backgroundImage.upload")}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) void handleBackgroundImageUpload(file)
+                          e.target.value = ""
+                        }}
+                      />
+                    </label>
+                    {editing.backgroundImageDataUrl && (
+                      <button
+                        onClick={() => setEditing({ ...editing, backgroundImageDataUrl: undefined })}
+                        className="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-gray-800"
+                      >
+                        {t("common.delete")}
+                      </button>
+                    )}
+                  </div>
+                  {editing.backgroundImageDataUrl && (
+                    <p className="mt-1 text-[11px] text-gray-400">
+                      {t("field.backgroundImage.hint")}
+                    </p>
+                  )}
+                </FormField>
 
                 <div>
                   <div className="mb-1 flex items-center justify-between">
@@ -534,12 +615,12 @@ export default function Options() {
                         />
                         {entry.source !== "memory" && (
                           <details className="mt-0.5">
-                            <summary className="cursor-pointer select-none text-[11px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                            <summary className="cursor-pointer select-none text-[12px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
                               {t("worldbook.advanced")}
                             </summary>
                             <div className="mt-2 space-y-2">
                               <label
-                                className="flex items-center gap-2 text-[11px] text-gray-600 dark:text-gray-400"
+                                className="flex items-center gap-2 text-[12px] text-gray-600 dark:text-gray-400"
                                 title={t("worldbook.constantHint")}
                               >
                                 <input
@@ -556,7 +637,7 @@ export default function Options() {
                               <div className="grid grid-cols-3 gap-2">
                                 {entry.alwaysActive && (
                                   <label
-                                    className="block text-[10px] text-gray-500 dark:text-gray-400"
+                                    className="block text-[11px] text-gray-500 dark:text-gray-400"
                                     title={t("worldbook.positionHint")}
                                   >
                                     <span className="mb-0.5 block">{t("worldbook.position")}</span>
@@ -590,7 +671,7 @@ export default function Options() {
                                     </select>
                                   </label>
                                 )}
-                                <label className="block text-[10px] text-gray-500 dark:text-gray-400">
+                                <label className="block text-[11px] text-gray-500 dark:text-gray-400">
                                   <span className="mb-0.5 block">{t("worldbook.role")}</span>
                                   <select
                                     value={entry.role ?? ""}
@@ -612,7 +693,7 @@ export default function Options() {
                                   </select>
                                 </label>
                                 <label
-                                  className="block text-[10px] text-gray-500 dark:text-gray-400"
+                                  className="block text-[11px] text-gray-500 dark:text-gray-400"
                                   title={t("worldbook.depthHint")}
                                 >
                                   <span className="mb-0.5 block">{t("worldbook.depth")}</span>

@@ -116,7 +116,7 @@ export function PlatformOverlay({
       {canEnrich && !open && (
         <button
           onClick={handleEnrich}
-          className="fixed bottom-[4.6rem] right-6 z-[999999] flex h-9 items-center gap-1.5 rounded-full border border-gray-200/80 bg-white/95 px-3.5 text-[11px] font-medium text-gray-700 shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200"
+          className="fixed bottom-[4.6rem] right-6 z-[999999] flex h-9 items-center gap-1.5 rounded-full border border-gray-200/80 bg-white/95 px-3.5 text-[12px] font-medium text-gray-700 shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200"
         >
           <span aria-hidden>✨</span> {t("pill.enrich")}
         </button>
@@ -142,7 +142,7 @@ export function PlatformOverlay({
       )}
 
       {open && (
-        <div className="fixed bottom-[5.2rem] right-6 z-[999998] w-[360px] max-w-[calc(100vw-3rem)] animate-fade-up overflow-hidden rounded-2xl border border-gray-200/80 bg-white text-gray-900 shadow-2xl shadow-gray-900/10 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100">
+        <div className="fixed bottom-[5.2rem] right-6 z-[999998] flex max-h-[calc(100dvh-6.5rem)] w-[360px] max-w-[calc(100vw-3rem)] flex-col animate-fade-up overflow-hidden rounded-2xl border border-gray-200/80 bg-white text-gray-900 shadow-2xl shadow-gray-900/10 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-100">
           <PersonaPanel onClose={() => setOpen(false)} />
         </div>
       )}

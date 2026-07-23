@@ -14,6 +14,14 @@ module.exports = {
   ],
   theme: {
     extend: {
+      fontSize: {
+        // The baseline read a touch small in the 360px panel — nudge the two
+        // workhorse sizes up one notch. Absolute px (not the default rem) so
+        // sizes don't drift with the host page's root font-size inside the
+        // content-script shadow root.
+        xs: ["13px", { lineHeight: "18px" }],
+        sm: ["15px", { lineHeight: "21px" }]
+      },
       colors: {
         persona: {
           50: "#f5f3ff",
