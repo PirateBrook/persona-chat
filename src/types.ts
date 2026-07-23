@@ -48,10 +48,6 @@ export interface WorldInfoEntry {
   /** Character Card V3 `@@role` — visible framing label only (see
    *  WorldInfoRole), never a real message turn. */
   role?: WorldInfoRole
-  /** Character Card V3 `use_regex` — treat each key as a case-insensitive
-   *  regex against the draft. Invalid patterns fall back to literal substring
-   *  matching. Only ever matches the draft; never rewrites model output. */
-  useRegex?: boolean
   /** Character Card V3 `insertion_order` — tiebreak among entries at the same
    *  depth, ascending. Absent = 0. */
   order?: number

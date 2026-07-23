@@ -179,8 +179,9 @@ export const zh: Messages = {
   // ---- world info V3 decorators (options.tsx editor + world-info.ts labels) ----
   "worldbook.advanced": "高级",
   "worldbook.constant": "常驻注入（constant）",
-  "worldbook.constantHint": "无视关键词直接注入。若设置了下面的「位置」，则折叠进激活消息，而不是每次增强都重复注入。",
+  "worldbook.constantHint": "每次增强都注入，无视关键词。若再设下面的描述槽「位置」，应用人设时会在激活消息里额外放一份。",
   "worldbook.position": "位置",
+  "worldbook.positionHint": "仅对常驻注入条目生效：这条设定还会折叠进激活消息的哪个槽位。",
   "worldbook.position.none": "默认（在增强块中）",
   "worldbook.position.before_desc": "人设描述前",
   "worldbook.position.after_desc": "人设描述后",
@@ -194,8 +195,6 @@ export const zh: Messages = {
   "worldbook.role.system": "系统",
   "worldbook.role.user": "用户",
   "worldbook.role.assistant": "角色",
-  "worldbook.regex": "关键词按正则匹配",
-  "worldbook.regexHint": "把每个关键词当作正则表达式；无效则回退为纯文本匹配。",
   "worldbook.label.system": "⚙️ 系统设定：",
   "worldbook.label.assistant": "🎭 角色设定："
 }

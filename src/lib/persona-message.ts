@@ -10,9 +10,11 @@ import { isActivationFolded, loreLabel } from "./world-info"
  * on every later enrich-tap.
  *
  * `constant` (alwaysActive) world-info entries pinned to a description slot
- * (before_desc/after_desc/personality/scenario) are also folded in here, once,
- * instead of repeating on every Enrich tap — see world-info.ts
- * isActivationFolded. All other lore stays with the per-tap Enrich scanner.
+ * (before_desc/after_desc/personality/scenario) also get a copy folded in
+ * here, near the persona description — an ADDITIONAL placement in the one-time
+ * activation message. They still fire on every Enrich tap too (always-active
+ * means always); folding never replaces that. See world-info.ts
+ * isActivationFolded / matchWorldInfo.
  *
  * The wrapper meta-instructions must be in the same language as the persona
  * content and the model's reply, so a zh user's DeepSeek stays in Chinese —

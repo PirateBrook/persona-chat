@@ -3,7 +3,11 @@ import { useEffect, useState } from "react"
 import "./style.css"
 
 import { BACKGROUND_PRESETS } from "~lib/backgrounds"
-import { CharacterCardImportError, parseCharacterCardFile } from "~lib/character-card-import"
+import {
+  CharacterCardImportError,
+  coercePosition,
+  parseCharacterCardFile
+} from "~lib/character-card-import"
 import { useI18n, type MessageKey } from "~lib/i18n"
 import { INPUT_BASE_CLS } from "~lib/styles"
 import { ensureSeeds } from "~seed"
@@ -158,13 +162,16 @@ export default function Options() {
                     enabled: e.enabled !== false
                   }
                   // Pass through optional flags/decorators so an export→import
-                  // round-trip doesn't silently drop them.
+                  // round-trip keeps them — but normalize the same way the
+                  // character-card path does, so a hand-edited / corrupt backup
+                  // can't smuggle in an invalid position or a negative depth.
                   if (e.alwaysActive) wi.alwaysActive = true
                   if (e.source) wi.source = e.source
-                  if (e.position) wi.position = e.position
-                  if (typeof e.depth === "number") wi.depth = e.depth
-                  if (e.role) wi.role = e.role
-                  if (e.useRegex) wi.useRegex = true
+                  const position = coercePosition(e.position)
+                  if (position) wi.position = position
+                  if (typeof e.depth === "number" && e.depth >= 0) wi.depth = Math.floor(e.depth)
+                  if (e.role === "system" || e.role === "user" || e.role === "assistant")
+                    wi.role = e.role
                   if (typeof e.order === "number") wi.order = e.order
                   return wi
                 })
@@ -546,53 +553,43 @@ export default function Options() {
                                 />
                                 {t("worldbook.constant")}
                               </label>
-                              <label
-                                className="flex items-center gap-2 text-[11px] text-gray-600 dark:text-gray-400"
-                                title={t("worldbook.regexHint")}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={!!entry.useRegex}
-                                  onChange={(e) =>
-                                    updateWorldInfoField(entry.id, {
-                                      useRegex: e.target.checked || undefined
-                                    })
-                                  }
-                                />
-                                {t("worldbook.regex")}
-                              </label>
                               <div className="grid grid-cols-3 gap-2">
-                                <label className="block text-[10px] text-gray-500 dark:text-gray-400">
-                                  <span className="mb-0.5 block">{t("worldbook.position")}</span>
-                                  <select
-                                    value={entry.position ?? ""}
-                                    onChange={(e) =>
-                                      updateWorldInfoField(entry.id, {
-                                        position: (e.target.value || undefined) as
-                                          | WorldInfoPosition
-                                          | undefined
-                                      })
-                                    }
-                                    className={INPUT_CLS_SMALL}
+                                {entry.alwaysActive && (
+                                  <label
+                                    className="block text-[10px] text-gray-500 dark:text-gray-400"
+                                    title={t("worldbook.positionHint")}
                                   >
-                                    <option value="">{t("worldbook.position.none")}</option>
-                                    <option value="before_desc">
-                                      {t("worldbook.position.before_desc")}
-                                    </option>
-                                    <option value="after_desc">
-                                      {t("worldbook.position.after_desc")}
-                                    </option>
-                                    <option value="personality">
-                                      {t("worldbook.position.personality")}
-                                    </option>
-                                    <option value="scenario">
-                                      {t("worldbook.position.scenario")}
-                                    </option>
-                                    <option value="at_depth">
-                                      {t("worldbook.position.at_depth")}
-                                    </option>
-                                  </select>
-                                </label>
+                                    <span className="mb-0.5 block">{t("worldbook.position")}</span>
+                                    <select
+                                      value={entry.position ?? ""}
+                                      onChange={(e) =>
+                                        updateWorldInfoField(entry.id, {
+                                          position: (e.target.value || undefined) as
+                                            | WorldInfoPosition
+                                            | undefined
+                                        })
+                                      }
+                                      className={INPUT_CLS_SMALL}
+                                    >
+                                      <option value="">{t("worldbook.position.none")}</option>
+                                      <option value="before_desc">
+                                        {t("worldbook.position.before_desc")}
+                                      </option>
+                                      <option value="after_desc">
+                                        {t("worldbook.position.after_desc")}
+                                      </option>
+                                      <option value="personality">
+                                        {t("worldbook.position.personality")}
+                                      </option>
+                                      <option value="scenario">
+                                        {t("worldbook.position.scenario")}
+                                      </option>
+                                      <option value="at_depth">
+                                        {t("worldbook.position.at_depth")}
+                                      </option>
+                                    </select>
+                                  </label>
+                                )}
                                 <label className="block text-[10px] text-gray-500 dark:text-gray-400">
                                   <span className="mb-0.5 block">{t("worldbook.role")}</span>
                                   <select

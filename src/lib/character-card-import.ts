@@ -95,7 +95,6 @@ interface RawCharacterBookEntry {
   content?: unknown
   enabled?: unknown
   constant?: unknown
-  use_regex?: unknown
   insertion_order?: unknown
   position?: unknown
 }
@@ -158,10 +157,13 @@ const VALID_POSITIONS: readonly WorldInfoPosition[] = [
  * string names directly; V2 uses a numeric enum (0=before_char, 1=after_char,
  * 4=at_depth — the author's-note slots 2/3 we don't model are dropped).
  */
-function coercePosition(raw: unknown): WorldInfoPosition | undefined {
+export function coercePosition(raw: unknown): WorldInfoPosition | undefined {
   if (typeof raw === "string") {
-    const p = raw.trim() as WorldInfoPosition
-    return VALID_POSITIONS.includes(p) ? p : undefined
+    const s = raw.trim()
+    if (VALID_POSITIONS.includes(s as WorldInfoPosition)) return s as WorldInfoPosition
+    // V2 enum is sometimes serialized as a numeric string ("0"/"1"/"4").
+    if (/^\d+$/.test(s)) return coercePosition(Number(s))
+    return undefined
   }
   if (typeof raw === "number") {
     if (raw === 0) return "before_desc"
@@ -192,20 +194,31 @@ function parseDecorators(content: string): {
   let role: WorldInfoRole | undefined
 
   for (; i < lines.length; i++) {
-    const m = /^@@@?(\w+)[ \t]*(.*)$/.exec(lines[i].trim())
+    const m = /^(@@@?)(\w+)[ \t]*(.*)$/.exec(lines[i].trim())
     if (!m) break
-    const name = m[1].toLowerCase()
-    const arg = m[2].trim()
+    // V3: `@@@` is a fallback — only applied when the `@@` primary didn't set
+    // that field, so a fallback never overrides an explicit primary value.
+    const isFallback = m[1] === "@@@"
+    const name = m[2].toLowerCase()
+    const arg = m[3].trim()
     if (name === "depth") {
       const n = parseInt(arg, 10)
-      if (!Number.isNaN(n)) depth = n
+      if (!Number.isNaN(n) && (!isFallback || depth === undefined)) depth = n
     } else if (name === "position") {
       const p = coercePosition(arg)
-      if (p) position = p
+      if (p && (!isFallback || position === undefined)) position = p
     } else if (name === "role") {
-      if (arg === "system" || arg === "user" || arg === "assistant") role = arg
+      if (
+        (arg === "system" || arg === "user" || arg === "assistant") &&
+        (!isFallback || role === undefined)
+      )
+        role = arg
+    } else {
+      // Not a recognized decorator — stop and keep this line (and everything
+      // after) as literal lore content, rather than swallowing an
+      // author-written line that merely happens to start with "@@".
+      break
     }
-    // Unknown decorators are consumed (stripped) but not mapped to a field.
   }
 
   return { position, depth, role, cleaned: lines.slice(i).join("\n").trim() }
@@ -228,15 +241,20 @@ function mapWorldInfo(raw: RawCharacterData): WorldInfoEntry[] | undefined {
         ? [entry.key]
         : []
 
-    // Pull V3 `@@` decorators off the content; a `@@position` decorator wins
-    // over the structured `position` field when both are present.
+    // Pull recognized V3 `@@` decorators off the top; a `@@position`
+    // decorator wins over the structured `position` field when both present.
     const decor = parseDecorators(rawContent)
+    // An entry that was nothing but decorator lines has no real lore to inject
+    // — skip it rather than storing the raw "@@…" text as visible content.
+    const content = decor.cleaned
+    if (!content) continue
+
     const position = decor.position ?? coercePosition(entry.position)
 
     const wi: WorldInfoEntry = {
       id: makeWorldInfoId(),
       keys,
-      content: decor.cleaned || rawContent,
+      content,
       // Default to on per the mapping spec; only an explicit `enabled: false`
       // from the source card keeps an entry off.
       enabled: entry.enabled !== false,
@@ -250,7 +268,6 @@ function mapWorldInfo(raw: RawCharacterData): WorldInfoEntry[] | undefined {
     if (position) wi.position = position
     if (typeof decor.depth === "number") wi.depth = decor.depth
     if (decor.role) wi.role = decor.role
-    if (entry.use_regex === true) wi.useRegex = true
     if (typeof entry.insertion_order === "number") wi.order = entry.insertion_order
 
     mapped.push(wi)

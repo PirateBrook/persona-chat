@@ -146,3 +146,9 @@
 | — · 过审 | 无新增权限/网络/UGC | ✅ 本方向未碰 manifest / 无网络（沿用基线） |
 
 **回归安全性**：无新字段的旧数据在 matchWorldInfo / buildPersonaMessage 下输出与旧版逐字一致（Node 断言 baseline 已验），`isActivationFolded` 对现存 alwaysActive 记忆条目（无 position）返回 false，故记忆笔记行为不变。
+
+**xhigh code-review 修复（2026-07-23）**：审查发现 11 个缺陷，已全部修复，语义有两处调整——
+- **`use_regex` 整体砍掉**（ReDoS：卡片提供的 `(a+)+$` 类模式会同步回溯冻结整个页面，长度上限挡不住）。关键词一律按字面量子串匹配（=main 行为）。连带解决"编辑器逗号切分毁掉正则 key"。
+- **折叠改为"附加"而非"排斥"**：`constant`/alwaysActive 条目**每次 Enrich 都注入**（恢复"常驻"跨对话保证——之前折叠条目被 matchWorldInfo 排除，新对话/刷新后 buildPersonaMessage 不再跑，常驻 lore 静默丢失）；描述槽位置只额外在激活消息里多放一份。连带解决 no-op pill、at_depth 与 tooltip 矛盾。
+- 导入修复：纯装饰器条目跳过（不再把 `@@…` 原文当内容）、未识别的 `@@word` 行保留为正文、数值字符串 position（"0"/"4"）映射、`@@@` 仅作 fallback、备份导入复用 coercePosition 归一化。
+- 验证：新增针对性 Node 断言 **19/19 通过**（含 ReDoS 不再挂起、跨对话常驻注入、各导入边界）；tsc/build 干净。教训（对抗式输入 + 跨对话状态必测）已回填 `pc-test` playbook 手段A。

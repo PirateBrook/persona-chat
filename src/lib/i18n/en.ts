@@ -187,8 +187,10 @@ export const en = {
   "worldbook.advanced": "Advanced",
   "worldbook.constant": "Always inject (constant)",
   "worldbook.constantHint":
-    "Inject regardless of keywords. With a position set below, it folds into the activation message instead of repeating on every enrich.",
+    "Always injected on every Enrich, regardless of keywords. A description-slot position below also places a copy in the activation message when you apply the persona.",
   "worldbook.position": "Position",
+  "worldbook.positionHint":
+    "Only affects always-inject entries — which activation-message slot this lore also folds into.",
   "worldbook.position.none": "Default (in enrich block)",
   "worldbook.position.before_desc": "Before persona",
   "worldbook.position.after_desc": "After persona",
@@ -202,9 +204,6 @@ export const en = {
   "worldbook.role.system": "System",
   "worldbook.role.user": "User",
   "worldbook.role.assistant": "Assistant",
-  "worldbook.regex": "Match keys as regex",
-  "worldbook.regexHint":
-    "Treat each key as a regular expression. Invalid patterns fall back to plain-text matching.",
   "worldbook.label.system": "⚙️ System note:",
   "worldbook.label.assistant": "🎭 In character:",
 } as const

@@ -1,10 +1,10 @@
 import type { Locale, WorldInfoEntry, WorldInfoPosition, WorldInfoRole } from "../types"
 import { translate } from "./i18n"
 
-/** Positions that fold a `constant` (alwaysActive) entry into the one-time
- *  activation message (persona-message.ts) rather than re-injecting it on
- *  every Enrich tap. `at_depth` is deliberately excluded — it belongs in the
- *  Enrich block, ordered by `depth`. */
+/** Positions that also fold a `constant` (alwaysActive) entry into the
+ *  one-time activation message (persona-message.ts), as an extra copy placed
+ *  near the persona description. `at_depth` is excluded — it has no
+ *  description slot to fold into. */
 const ACTIVATION_POSITIONS: readonly WorldInfoPosition[] = [
   "before_desc",
   "after_desc",
@@ -13,11 +13,14 @@ const ACTIVATION_POSITIONS: readonly WorldInfoPosition[] = [
 ]
 
 /**
- * A `constant`/alwaysActive entry pinned to a description slot is emitted once,
- * inside the activation message (buildPersonaMessage) — so the Enrich scanner
- * must skip it to avoid re-injecting the same lore on every tap. Memory notes
- * (alwaysActive, no position) and `at_depth` constants are NOT folded and keep
- * firing per-tap.
+ * True when a constant entry ALSO gets a copy folded into the activation
+ * message's description slot (see buildPersonaMessage). This is ADDITIVE: the
+ * entry still fires on every Enrich like any alwaysActive entry — folding only
+ * adds a second placement in the first activation message, it never replaces
+ * the per-tap injection. (An earlier version excluded folded entries from
+ * Enrich, which silently dropped always-on lore in any conversation where the
+ * activation message wasn't re-sent — the activation message is per-apply,
+ * Enrich is forever.)
  */
 export function isActivationFolded(entry: WorldInfoEntry): boolean {
   return (
@@ -25,22 +28,9 @@ export function isActivationFolded(entry: WorldInfoEntry): boolean {
   )
 }
 
-// Cap key length before compiling a user/card-supplied regex. The scanned
-// draft is the user's own (short) message, so a modest cap plus try/catch
-// keeps catastrophic backtracking bounded without a real timeout mechanism.
-const MAX_REGEX_KEY_LENGTH = 200
-
-function keyMatches(key: string, draft: string, draftLower: string, useRegex?: boolean): boolean {
-  const k = key.trim()
-  if (!k) return false
-  if (useRegex && k.length <= MAX_REGEX_KEY_LENGTH) {
-    try {
-      return new RegExp(k, "i").test(draft)
-    } catch {
-      // Malformed pattern — fall through to literal substring matching.
-    }
-  }
-  return draftLower.includes(k.toLowerCase())
+function keyMatches(key: string, draftLower: string): boolean {
+  const k = key.trim().toLowerCase()
+  return k.length > 0 && draftLower.includes(k)
 }
 
 /**
@@ -48,8 +38,11 @@ function keyMatches(key: string, draft: string, draftLower: string, useRegex?: b
  * recursion, selective keys, probability, case sensitivity, and tunable scan
  * depth against full chat history — all of that assumes per-request API
  * access to inject invisibly. We only get one shot per enrich-tap, scanning
- * the user's own draft, so flat substring (or opt-in regex) matching covers
- * the value at a fraction of the complexity.
+ * the user's own draft, so flat case-insensitive substring matching covers
+ * the value at a fraction of the complexity. (Regex key matching was
+ * deliberately dropped: a card-supplied pattern like `(a+)+$` runs
+ * synchronously on the page thread and catastrophically backtracks on
+ * ordinary input, freezing the tab — not worth the marginal power here.)
  */
 export function matchWorldInfo(
   entries: WorldInfoEntry[] | undefined,
@@ -59,22 +52,19 @@ export function matchWorldInfo(
   if (!entries || entries.length === 0) return []
 
   const draft = text.trim()
-  // Empty draft still lets `alwaysActive` entries (memory notes) fire on their
-  // own; only keyword matching needs actual draft text.
   const draftLower = draft.toLowerCase()
 
   return entries.filter((entry) => {
     if (!entry.enabled) return false
-    // Emitted once inside the activation message — never re-inject via Enrich.
-    if (isActivationFolded(entry)) return false
-    // Checked before `alreadyTriggered`: a memory note's whole point is that
-    // it keeps resurfacing on every future tap, unlike keyword-matched lore
-    // which is meant to fire once per session so it doesn't repeat itself
-    // every time the same word comes up again.
+    // alwaysActive (memory notes + constant lore) fires on every tap
+    // regardless of keywords or prior triggers — that's what "always active"
+    // means. A constant entry may ALSO be folded into the activation message
+    // (isActivationFolded), but that's an extra placement, not a replacement,
+    // so it must still fire here.
     if (entry.alwaysActive) return true
     if (alreadyTriggered.has(entry.id)) return false
     if (!draft) return false
-    return entry.keys.some((key) => keyMatches(key, draft, draftLower, entry.useRegex))
+    return entry.keys.some((key) => keyMatches(key, draftLower))
   })
 }
 
