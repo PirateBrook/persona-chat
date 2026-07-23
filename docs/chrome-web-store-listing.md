@@ -161,7 +161,12 @@ Support email for the CWS developer dashboard: punkscosmos@gmail.com
       submission time (data usage categories, purpose, no third-party sale).
 - [x] Screenshot 1 retaken with sidebar collapsed — no longer leaks real
       personal DeepSeek chat history (verified 2026-07-21).
-- [ ] Claude.ai screenshots — the listing now covers claude.ai too, but all
-      current shots are DeepSeek-only. Add 1–2 Claude captures (persona panel
-      + injected message on claude.ai) for parity before leaning on Claude in
-      the pitch. Capture the same way (browser-cdp, 1280×800, real session).
+- [x] Claude.ai screenshots added (1280×800, browser-cdp on a live logged-in
+      session; sidebar collapsed + org badge hidden so no private chat history
+      or account/org data shows):
+      `screenshot-5-claude-personas.png` (persona panel/list on claude.ai),
+      `screenshot-6-claude-injected.png` (a persona's opening message injected
+      into Claude's composer, over a scene background).
+      Give them a final eyeball before submitting. Minor known cosmetic: some
+      persona tags render in English on a zh UI (a few tags lack zh
+      translations) — separate i18n gap, not a screenshot blocker.
