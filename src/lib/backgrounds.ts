@@ -1,4 +1,4 @@
-import { getCustomBackground } from "../storage"
+import { getCustomBackground, getPersona } from "../storage"
 import type { CustomBackground } from "../types"
 
 export interface BackgroundPreset {
@@ -436,9 +436,25 @@ export function customBackgroundToPreset(custom: CustomBackground): BackgroundPr
   return { id: custom.id, category: "custom", cssDark: image, cssLight: image, bandAlpha: 0.55 }
 }
 
+/** A persona carrying its own background image: `activeBackgroundId` is the
+ *  sentinel `persona:<personaId>`. Wrapped the same way an uploaded custom
+ *  background is (same downscaled image → preset pipeline). */
+function personaBackgroundToPreset(id: string, dataUrl: string): BackgroundPreset {
+  const image = `url("${dataUrl}")`
+  return { id, category: "persona", cssDark: image, cssLight: image, bandAlpha: 0.55 }
+}
+
+const PERSONA_BG_PREFIX = "persona:"
+
 async function resolveBackground(id: string): Promise<BackgroundPreset | null> {
   const preset = getBackgroundPreset(id)
   if (preset) return preset
+  if (id.startsWith(PERSONA_BG_PREFIX)) {
+    const persona = await getPersona(id.slice(PERSONA_BG_PREFIX.length))
+    return persona?.backgroundImageDataUrl
+      ? personaBackgroundToPreset(id, persona.backgroundImageDataUrl)
+      : null
+  }
   const custom = await getCustomBackground(id)
   return custom ? customBackgroundToPreset(custom) : null
 }
@@ -572,7 +588,13 @@ function installThemeWatcher(): void {
 
   try {
     const observer = new MutationObserver(onThemeMaybeChanged)
-    const opts: MutationObserverInit = { attributes: true, attributeFilter: ["class", "style", "data-theme"] }
+    // data-mode covers Claude.ai's theme signal (html[data-mode]); class/style/
+    // data-theme cover DeepSeek's. Observing an extra attribute a platform
+    // doesn't use is harmless.
+    const opts: MutationObserverInit = {
+      attributes: true,
+      attributeFilter: ["class", "style", "data-theme", "data-mode"]
+    }
     observer.observe(document.documentElement, opts)
     observer.observe(document.body, opts)
   } catch {

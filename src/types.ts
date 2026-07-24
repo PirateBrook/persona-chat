@@ -3,6 +3,25 @@ export type ModeKey = "original" | "image" | "persona" | "tweaks"
 export type Locale = "en" | "zh"
 export type LanguagePref = "auto" | "en" | "zh"
 
+/** How a lore entry maps onto the two injection anchors we actually own (the
+ *  one-time activation message and the per-tap Enrich block). Mirrors
+ *  Character Card V3's `@@position` names, but the semantics are a LOCAL,
+ *  VISIBLE reinterpretation — we can't assemble a real prompt, so a `constant`
+ *  entry with `before_desc`/`after_desc`/`personality`/`scenario` folds into
+ *  the matching slot of the activation message; `at_depth` just means
+ *  "ordered within the Enrich block by `depth`". */
+export type WorldInfoPosition =
+  | "before_desc"
+  | "after_desc"
+  | "personality"
+  | "scenario"
+  | "at_depth"
+
+/** V3 `@@role`. We only have one user input box, so this is NOT a real
+ *  system/assistant turn — it only picks the visible framing label the lore
+ *  block is prefixed with. */
+export type WorldInfoRole = "system" | "user" | "assistant"
+
 export interface WorldInfoEntry {
   id: string
   keys: string[]
@@ -18,6 +37,20 @@ export interface WorldInfoEntry {
    *  mid-conversation) render separately from hand-authored world info in
    *  the options-page editor. Absent/undefined means "authored". */
   source?: "authored" | "memory"
+  /** Character Card V3 `@@position` — see WorldInfoPosition. A `constant`
+   *  (alwaysActive) entry in a description slot folds into the one-time
+   *  activation message instead of repeating on every Enrich. */
+  position?: WorldInfoPosition
+  /** Character Card V3 `@@depth`. NOT history insertion (we can't touch chat
+   *  history) — relative ordering *within* one Enrich message: larger depth
+   *  sits farther from the user's draft (higher up). Absent = 0 (nearest). */
+  depth?: number
+  /** Character Card V3 `@@role` — visible framing label only (see
+   *  WorldInfoRole), never a real message turn. */
+  role?: WorldInfoRole
+  /** Character Card V3 `insertion_order` — tiebreak among entries at the same
+   *  depth, ascending. Absent = 0. */
+  order?: number
 }
 
 export interface PersonaCard {
@@ -40,6 +73,11 @@ export interface PersonaCard {
   driftReminder?: string
   worldInfo?: WorldInfoEntry[]
   backgroundId?: string
+  /** A persona's own scene background image (data URL, downscaled the same way
+   *  as `avatarImageDataUrl`). Travels with the persona on export/import;
+   *  applying the persona switches the page background to it. Takes priority
+   *  over `backgroundId` (which references a shared preset / custom background). */
+  backgroundImageDataUrl?: string
   /** Original card author, kept for attribution when importing a
    *  community character card (Character Card V2/V3 `creator`). Absent on
    *  hand-authored/seed cards. */
@@ -59,6 +97,12 @@ export interface PersonaCard {
   tags: string[]
   createdAt: number
   updatedAt: number
+  /** When the persona was last applied ("Apply"). Drives most-recently-used
+   *  ordering. Set via markPersonaUsed, which deliberately does NOT bump
+   *  updatedAt (applying isn't editing). Absent = never used. */
+  lastUsedAt?: number
+  /** User-pinned to the top of the persona list for quick access. */
+  pinned?: boolean
 }
 
 /** A user-uploaded background image (downscaled + re-encoded client-side
@@ -98,6 +142,9 @@ export interface AppState {
   language: LanguagePref
   pageTweaks: PageTweaks
   tts: TtsPreference
+  /** Last tag filter chosen in the persona list, remembered across panel
+   *  reopens. `null` = no filter. */
+  personaTagFilter?: string | null
 }
 
 export const DEFAULT_APP_STATE: AppState = {
@@ -107,5 +154,6 @@ export const DEFAULT_APP_STATE: AppState = {
   panelOpen: false,
   language: "auto",
   pageTweaks: { hideThinking: false },
-  tts: { enabled: false }
+  tts: { enabled: false },
+  personaTagFilter: null
 }

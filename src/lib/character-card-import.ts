@@ -1,5 +1,5 @@
 import { makePersonaId, makeWorldInfoId } from "../storage"
-import type { PersonaCard, WorldInfoEntry } from "../types"
+import type { PersonaCard, WorldInfoEntry, WorldInfoPosition, WorldInfoRole } from "../types"
 import { resizeImageFile } from "./image-resize"
 
 /**
@@ -95,6 +95,8 @@ interface RawCharacterBookEntry {
   content?: unknown
   enabled?: unknown
   constant?: unknown
+  insertion_order?: unknown
+  position?: unknown
 }
 
 interface RawCharacterData {
@@ -142,6 +144,86 @@ function simplifyExampleDialogue(raw: unknown): string | undefined {
   return text.replace(/<START>/g, "").trim() || undefined
 }
 
+const VALID_POSITIONS: readonly WorldInfoPosition[] = [
+  "before_desc",
+  "after_desc",
+  "personality",
+  "scenario",
+  "at_depth"
+]
+
+/**
+ * Normalizes a character-book `position` to our WorldInfoPosition. V3 uses the
+ * string names directly; V2 uses a numeric enum (0=before_char, 1=after_char,
+ * 4=at_depth — the author's-note slots 2/3 we don't model are dropped).
+ */
+export function coercePosition(raw: unknown): WorldInfoPosition | undefined {
+  if (typeof raw === "string") {
+    const s = raw.trim()
+    if (VALID_POSITIONS.includes(s as WorldInfoPosition)) return s as WorldInfoPosition
+    // V2 enum is sometimes serialized as a numeric string ("0"/"1"/"4").
+    if (/^\d+$/.test(s)) return coercePosition(Number(s))
+    return undefined
+  }
+  if (typeof raw === "number") {
+    if (raw === 0) return "before_desc"
+    if (raw === 1) return "after_desc"
+    if (raw === 4) return "at_depth"
+  }
+  return undefined
+}
+
+/**
+ * Character Card V3 lore entries may prefix `content` with `@@` decorator
+ * lines (`@@depth 4`, `@@position after_desc`, `@@role system`). Pulls the
+ * recognized decorators off the top and returns the cleaned content; every
+ * `@@`-prefixed leading line is stripped (it's metadata, not prose) even if
+ * unrecognized. Stops at the first non-decorator line, so a stray "@@" inside
+ * body text is left untouched.
+ */
+function parseDecorators(content: string): {
+  position?: WorldInfoPosition
+  depth?: number
+  role?: WorldInfoRole
+  cleaned: string
+} {
+  const lines = content.split("\n")
+  let i = 0
+  let position: WorldInfoPosition | undefined
+  let depth: number | undefined
+  let role: WorldInfoRole | undefined
+
+  for (; i < lines.length; i++) {
+    const m = /^(@@@?)(\w+)[ \t]*(.*)$/.exec(lines[i].trim())
+    if (!m) break
+    // V3: `@@@` is a fallback — only applied when the `@@` primary didn't set
+    // that field, so a fallback never overrides an explicit primary value.
+    const isFallback = m[1] === "@@@"
+    const name = m[2].toLowerCase()
+    const arg = m[3].trim()
+    if (name === "depth") {
+      const n = parseInt(arg, 10)
+      if (!Number.isNaN(n) && (!isFallback || depth === undefined)) depth = n
+    } else if (name === "position") {
+      const p = coercePosition(arg)
+      if (p && (!isFallback || position === undefined)) position = p
+    } else if (name === "role") {
+      if (
+        (arg === "system" || arg === "user" || arg === "assistant") &&
+        (!isFallback || role === undefined)
+      )
+        role = arg
+    } else {
+      // Not a recognized decorator — stop and keep this line (and everything
+      // after) as literal lore content, rather than swallowing an
+      // author-written line that merely happens to start with "@@".
+      break
+    }
+  }
+
+  return { position, depth, role, cleaned: lines.slice(i).join("\n").trim() }
+}
+
 function mapWorldInfo(raw: RawCharacterData): WorldInfoEntry[] | undefined {
   const entries = raw.character_book?.entries
   if (!Array.isArray(entries)) return undefined
@@ -150,8 +232,8 @@ function mapWorldInfo(raw: RawCharacterData): WorldInfoEntry[] | undefined {
   for (const e of entries) {
     if (!e || typeof e !== "object") continue
     const entry = e as RawCharacterBookEntry
-    const content = stringOr(entry.content)
-    if (!content) continue
+    const rawContent = stringOr(entry.content)
+    if (!rawContent) continue
 
     const keys = Array.isArray(entry.keys)
       ? entry.keys.filter((k): k is string => typeof k === "string")
@@ -159,7 +241,17 @@ function mapWorldInfo(raw: RawCharacterData): WorldInfoEntry[] | undefined {
         ? [entry.key]
         : []
 
-    mapped.push({
+    // Pull recognized V3 `@@` decorators off the top; a `@@position`
+    // decorator wins over the structured `position` field when both present.
+    const decor = parseDecorators(rawContent)
+    // An entry that was nothing but decorator lines has no real lore to inject
+    // — skip it rather than storing the raw "@@…" text as visible content.
+    const content = decor.cleaned
+    if (!content) continue
+
+    const position = decor.position ?? coercePosition(entry.position)
+
+    const wi: WorldInfoEntry = {
       id: makeWorldInfoId(),
       keys,
       content,
@@ -171,7 +263,14 @@ function mapWorldInfo(raw: RawCharacterData): WorldInfoEntry[] | undefined {
       // imported always-on lorebook entry would silently become an ordinary
       // keyword-gated one.
       alwaysActive: entry.constant === true
-    })
+    }
+    // Attach V3 decorator fields only when present, to keep stored entries lean.
+    if (position) wi.position = position
+    if (typeof decor.depth === "number") wi.depth = decor.depth
+    if (decor.role) wi.role = decor.role
+    if (typeof entry.insertion_order === "number") wi.order = entry.insertion_order
+
+    mapped.push(wi)
   }
   return mapped.length > 0 ? mapped : undefined
 }

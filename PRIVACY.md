@@ -1,6 +1,6 @@
 # Privacy Policy — Persona.chat
 
-_Last updated: 2026-07-17_
+_Last updated: 2026-07-21_
 
 ## English
 
@@ -41,7 +41,7 @@ uninstalled.
 **Changes.** If this policy changes, the date above will be updated and the
 new version will describe what changed.
 
-**Contact.** Questions about this policy: punkscosmos.com.
+**Contact.** Questions about this policy: punkscosmos@gmail.com.
 
 ---
 
@@ -78,4 +78,4 @@ Persona.chat 是一个浏览器扩展,让你在使用 chat.deepseek.com 时应�
 
 **变更。** 如果本政策有变化,上方日期会更新,并说明具体改动内容。
 
-**联系方式。** 关于本政策的问题:punkscosmos.com。
+**联系方式。** 关于本政策的问题:punkscosmos@gmail.com。

@@ -73,13 +73,13 @@ export const BackgroundPicker: FC<Props> = ({
 
   return (
     <div className="px-4 pb-2 pt-3">
-      <p className="mb-3 text-[11px] leading-relaxed text-gray-500 dark:text-gray-400">
+      <p className="mb-3 text-[12px] leading-relaxed text-gray-500 dark:text-gray-400">
         {t("bg.blurb")}
       </p>
 
       {customBackgrounds.length > 0 && (
         <>
-          <p className="mb-1.5 text-[10px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
+          <p className="mb-1.5 text-[11px] font-medium uppercase tracking-wide text-gray-400 dark:text-gray-500">
             {t("bg.custom.heading")}
           </p>
           <div className="mb-3 grid grid-cols-3 gap-2">
@@ -133,7 +133,7 @@ export const BackgroundPicker: FC<Props> = ({
               : "hover:scale-[1.03]"
           }`}
         >
-          <div className="flex aspect-[4/3] w-full items-center justify-center border border-dashed border-gray-300 bg-gray-50 text-[10px] font-medium text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-500">
+          <div className="flex aspect-[4/3] w-full items-center justify-center border border-dashed border-gray-300 bg-gray-50 text-[11px] font-medium text-gray-400 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-500">
             {t("bg.none")}
           </div>
           {activeBackgroundId === null && <CheckBadge />}
@@ -158,7 +158,7 @@ export const BackgroundPicker: FC<Props> = ({
                 style={{ backgroundImage: getSwatchCss(preset, theme) }}
                 aria-hidden
               />
-              <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-1.5 pb-1 pt-3 text-left text-[9px] font-medium text-white/90">
+              <span className="pointer-events-none absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/50 to-transparent px-1.5 pb-1 pt-3 text-left text-[11px] font-medium text-white/90">
                 {label}
               </span>
               {isActive && <CheckBadge />}

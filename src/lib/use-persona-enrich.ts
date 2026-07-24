@@ -21,7 +21,7 @@ export interface EnrichOutcome {
  * still presses Enter. Turn/trigger state lives in refs so taps accumulate
  * across renders but reset the moment the active persona changes.
  */
-export function usePersonaEnrich(activePersona: PersonaCard | null) {
+export function usePersonaEnrich(activePersona: PersonaCard | null, locale: Locale) {
   const turnCountRef = useRef(0)
   const triggeredRef = useRef<Set<string>>(new Set())
   const personaIdRef = useRef<string | null>(null)
@@ -57,7 +57,8 @@ export function usePersonaEnrich(activePersona: PersonaCard | null) {
     const composed = composeEnrichedMessage(
       draft,
       matched,
-      driftDue ? activePersona.driftReminder : undefined
+      driftDue ? activePersona.driftReminder : undefined,
+      locale
     )
 
     const result = await adapter.injectText(composed)

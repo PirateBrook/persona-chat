@@ -3,8 +3,13 @@ import { useEffect, useState } from "react"
 import "./style.css"
 
 import { BACKGROUND_PRESETS } from "~lib/backgrounds"
-import { CharacterCardImportError, parseCharacterCardFile } from "~lib/character-card-import"
+import {
+  CharacterCardImportError,
+  coercePosition,
+  parseCharacterCardFile
+} from "~lib/character-card-import"
 import { useI18n, type MessageKey } from "~lib/i18n"
+import { resizeImageFile } from "~lib/image-resize"
 import { INPUT_BASE_CLS } from "~lib/styles"
 import { ensureSeeds } from "~seed"
 import {
@@ -15,7 +20,13 @@ import {
   makeWorldInfoId,
   upsertPersona
 } from "~storage"
-import type { LanguagePref, PersonaCard, WorldInfoEntry } from "~types"
+import type {
+  LanguagePref,
+  PersonaCard,
+  WorldInfoEntry,
+  WorldInfoPosition,
+  WorldInfoRole
+} from "~types"
 
 const INPUT_CLS = `w-full bg-gray-50/60 px-3 py-2 text-sm ${INPUT_BASE_CLS}`
 const INPUT_CLS_SMALL = `w-full bg-gray-50/60 px-2.5 py-1.5 text-xs ${INPUT_BASE_CLS}`
@@ -101,10 +112,37 @@ export default function Options() {
     await refresh()
   }
 
+  async function handleBackgroundImageUpload(file: File) {
+    let dataUrl: string
+    try {
+      dataUrl = await resizeImageFile(file)
+    } catch {
+      alert(t("bg.custom.uploadFailed"))
+      return
+    }
+    setEditing((prev) => (prev ? { ...prev, backgroundImageDataUrl: dataUrl } : prev))
+  }
+
   async function remove(id: string) {
     if (!confirm(t("confirm.delete"))) return
     await deletePersona(id)
     if (editing?.id === id) setEditing(null)
+    await refresh()
+  }
+
+  async function duplicatePersona(p: PersonaCard) {
+    const now = Date.now()
+    await upsertPersona({
+      ...p,
+      id: makePersonaId(),
+      name: t("options.copyName", { name: p.name }),
+      // A fresh copy the user owns — not pinned, never used, editable.
+      pinned: false,
+      lastUsedAt: undefined,
+      isCustomized: true,
+      createdAt: now,
+      updatedAt: now
+    })
     await refresh()
   }
 
@@ -136,6 +174,14 @@ export default function Options() {
           id: makePersonaId(),
           name: card.name,
           avatarEmoji: card.avatarEmoji || "🎭",
+          // Carry embedded images through a backup round-trip (both were
+          // previously dropped, silently losing portraits/backgrounds).
+          avatarImageDataUrl:
+            typeof card.avatarImageDataUrl === "string" ? card.avatarImageDataUrl : undefined,
+          backgroundImageDataUrl:
+            typeof card.backgroundImageDataUrl === "string"
+              ? card.backgroundImageDataUrl
+              : undefined,
           personaPrompt: card.personaPrompt,
           scenario: card.scenario,
           exampleDialogue: card.exampleDialogue,
@@ -144,12 +190,27 @@ export default function Options() {
           worldInfo: Array.isArray(card.worldInfo)
             ? card.worldInfo
                 .filter((e) => e && typeof e.content === "string")
-                .map((e) => ({
-                  id: makeWorldInfoId(),
-                  keys: Array.isArray(e.keys) ? e.keys.filter((k) => typeof k === "string") : [],
-                  content: e.content,
-                  enabled: e.enabled !== false
-                }))
+                .map((e) => {
+                  const wi: WorldInfoEntry = {
+                    id: makeWorldInfoId(),
+                    keys: Array.isArray(e.keys) ? e.keys.filter((k) => typeof k === "string") : [],
+                    content: e.content,
+                    enabled: e.enabled !== false
+                  }
+                  // Pass through optional flags/decorators so an export→import
+                  // round-trip keeps them — but normalize the same way the
+                  // character-card path does, so a hand-edited / corrupt backup
+                  // can't smuggle in an invalid position or a negative depth.
+                  if (e.alwaysActive) wi.alwaysActive = true
+                  if (e.source) wi.source = e.source
+                  const position = coercePosition(e.position)
+                  if (position) wi.position = position
+                  if (typeof e.depth === "number" && e.depth >= 0) wi.depth = Math.floor(e.depth)
+                  if (e.role === "system" || e.role === "user" || e.role === "assistant")
+                    wi.role = e.role
+                  if (typeof e.order === "number") wi.order = e.order
+                  return wi
+                })
             : undefined,
           backgroundId: typeof card.backgroundId === "string" ? card.backgroundId : undefined,
           tags: Array.isArray(card.tags) ? card.tags.filter((tag) => typeof tag === "string") : [],
@@ -200,6 +261,14 @@ export default function Options() {
     setEditing({
       ...editing,
       worldInfo: (editing.worldInfo ?? []).map((e) => (e.id === id ? { ...e, content } : e))
+    })
+  }
+
+  function updateWorldInfoField(id: string, patch: Partial<WorldInfoEntry>) {
+    if (!editing) return
+    setEditing({
+      ...editing,
+      worldInfo: (editing.worldInfo ?? []).map((e) => (e.id === id ? { ...e, ...patch } : e))
     })
   }
 
@@ -306,7 +375,7 @@ export default function Options() {
                         {p.personaPrompt}
                       </div>
                       {(p.worldInfo?.length ?? 0) > 0 && (
-                        <div className="mt-1 text-[10px] text-persona-600">
+                        <div className="mt-1 text-[11px] text-persona-600">
                           {tp("options.worldInfoCount", p.worldInfo!.length)}
                         </div>
                       )}
@@ -317,6 +386,12 @@ export default function Options() {
                         className="rounded px-2 py-1 text-xs text-persona-600 hover:bg-persona-50 dark:hover:bg-gray-800"
                       >
                         {t("common.edit")}
+                      </button>
+                      <button
+                        onClick={() => duplicatePersona(p)}
+                        className="rounded px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                      >
+                        {t("common.duplicate")}
                       </button>
                       <button
                         onClick={() => remove(p.id)}
@@ -369,7 +444,7 @@ export default function Options() {
                   </div>
                 </FormField>
                 {(editing.creator || editing.creatorNotes) && (
-                  <p className="rounded-lg bg-gray-50 px-3 py-2 text-[11px] leading-relaxed text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
+                  <p className="rounded-lg bg-gray-50 px-3 py-2 text-[12px] leading-relaxed text-gray-500 dark:bg-gray-800/60 dark:text-gray-400">
                     {editing.creator && (
                       <span className="block font-medium text-gray-600 dark:text-gray-300">
                         {t("cardImport.creatorLabel", { name: editing.creator })}
@@ -444,6 +519,45 @@ export default function Options() {
                     ))}
                   </select>
                 </FormField>
+                <FormField label={t("field.backgroundImage")}>
+                  <div className="flex items-center gap-2">
+                    {editing.backgroundImageDataUrl && (
+                      <img
+                        src={editing.backgroundImageDataUrl}
+                        alt=""
+                        className="h-9 w-14 shrink-0 rounded object-cover"
+                      />
+                    )}
+                    <label className="cursor-pointer rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800">
+                      {editing.backgroundImageDataUrl
+                        ? t("field.backgroundImage.replace")
+                        : t("field.backgroundImage.upload")}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0]
+                          if (file) void handleBackgroundImageUpload(file)
+                          e.target.value = ""
+                        }}
+                      />
+                    </label>
+                    {editing.backgroundImageDataUrl && (
+                      <button
+                        onClick={() => setEditing({ ...editing, backgroundImageDataUrl: undefined })}
+                        className="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-gray-800"
+                      >
+                        {t("common.delete")}
+                      </button>
+                    )}
+                  </div>
+                  {editing.backgroundImageDataUrl && (
+                    <p className="mt-1 text-[11px] text-gray-400">
+                      {t("field.backgroundImage.hint")}
+                    </p>
+                  )}
+                </FormField>
 
                 <div>
                   <div className="mb-1 flex items-center justify-between">
@@ -499,6 +613,109 @@ export default function Options() {
                           placeholder={t("placeholder.loreContent")}
                           className={INPUT_CLS_SMALL}
                         />
+                        {entry.source !== "memory" && (
+                          <details className="mt-0.5">
+                            <summary className="cursor-pointer select-none text-[12px] text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                              {t("worldbook.advanced")}
+                            </summary>
+                            <div className="mt-2 space-y-2">
+                              <label
+                                className="flex items-center gap-2 text-[12px] text-gray-600 dark:text-gray-400"
+                                title={t("worldbook.constantHint")}
+                              >
+                                <input
+                                  type="checkbox"
+                                  checked={!!entry.alwaysActive}
+                                  onChange={(e) =>
+                                    updateWorldInfoField(entry.id, {
+                                      alwaysActive: e.target.checked || undefined
+                                    })
+                                  }
+                                />
+                                {t("worldbook.constant")}
+                              </label>
+                              <div className="grid grid-cols-3 gap-2">
+                                {entry.alwaysActive && (
+                                  <label
+                                    className="block text-[11px] text-gray-500 dark:text-gray-400"
+                                    title={t("worldbook.positionHint")}
+                                  >
+                                    <span className="mb-0.5 block">{t("worldbook.position")}</span>
+                                    <select
+                                      value={entry.position ?? ""}
+                                      onChange={(e) =>
+                                        updateWorldInfoField(entry.id, {
+                                          position: (e.target.value || undefined) as
+                                            | WorldInfoPosition
+                                            | undefined
+                                        })
+                                      }
+                                      className={INPUT_CLS_SMALL}
+                                    >
+                                      <option value="">{t("worldbook.position.none")}</option>
+                                      <option value="before_desc">
+                                        {t("worldbook.position.before_desc")}
+                                      </option>
+                                      <option value="after_desc">
+                                        {t("worldbook.position.after_desc")}
+                                      </option>
+                                      <option value="personality">
+                                        {t("worldbook.position.personality")}
+                                      </option>
+                                      <option value="scenario">
+                                        {t("worldbook.position.scenario")}
+                                      </option>
+                                      <option value="at_depth">
+                                        {t("worldbook.position.at_depth")}
+                                      </option>
+                                    </select>
+                                  </label>
+                                )}
+                                <label className="block text-[11px] text-gray-500 dark:text-gray-400">
+                                  <span className="mb-0.5 block">{t("worldbook.role")}</span>
+                                  <select
+                                    value={entry.role ?? ""}
+                                    onChange={(e) =>
+                                      updateWorldInfoField(entry.id, {
+                                        role: (e.target.value || undefined) as
+                                          | WorldInfoRole
+                                          | undefined
+                                      })
+                                    }
+                                    className={INPUT_CLS_SMALL}
+                                  >
+                                    <option value="">{t("worldbook.role.default")}</option>
+                                    <option value="system">{t("worldbook.role.system")}</option>
+                                    <option value="user">{t("worldbook.role.user")}</option>
+                                    <option value="assistant">
+                                      {t("worldbook.role.assistant")}
+                                    </option>
+                                  </select>
+                                </label>
+                                <label
+                                  className="block text-[11px] text-gray-500 dark:text-gray-400"
+                                  title={t("worldbook.depthHint")}
+                                >
+                                  <span className="mb-0.5 block">{t("worldbook.depth")}</span>
+                                  <input
+                                    type="number"
+                                    min={0}
+                                    value={entry.depth ?? ""}
+                                    onChange={(e) =>
+                                      updateWorldInfoField(entry.id, {
+                                        depth:
+                                          e.target.value === ""
+                                            ? undefined
+                                            : Math.max(0, Math.floor(Number(e.target.value) || 0))
+                                      })
+                                    }
+                                    className={INPUT_CLS_SMALL}
+                                  />
+                                </label>
+                              </div>
+                            </div>
+                          </details>
+                        )}
                       </div>
                     ))}
                     {(editing.worldInfo ?? []).length === 0 && (

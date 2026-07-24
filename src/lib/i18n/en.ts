@@ -12,7 +12,7 @@ export const en = {
   "wrap.ackPlain": "Acknowledge briefly in character, then wait for my first question.",
 
   // ---- use-persona-enrich.ts ----
-  "enrich.failed": "Couldn't enrich — try refreshing DeepSeek.",
+  "enrich.failed": "Couldn't enrich — try refreshing the page.",
   "enrich.nothingYet": "Nothing to enrich yet.",
   "enrich.nothingNew": "Nothing new — send as-is.",
   "enrich.loreNote.one": "{count} lore note",
@@ -35,6 +35,7 @@ export const en = {
   "common.delete": "Delete",
   "common.save": "Save",
   "common.cancel": "Cancel",
+  "common.duplicate": "Duplicate",
 
   // ---- PersonaPanel.tsx ----
   "panel.deactivate": "Deactivate",
@@ -52,7 +53,7 @@ export const en = {
   "tab.tweaks": "Tweaks",
 
   // ---- PageTweaksPanel.tsx ----
-  "tweaks.blurb": "Small DOM tweaks applied directly to the DeepSeek page.",
+  "tweaks.blurb": "Small DOM tweaks applied directly to the chat page.",
   "tweaks.hideThinking": "Hide reasoning trace",
   "tweaks.hideThinkingDesc": "Collapses DeepSeek's \"Thought for Ns\" block — the final answer still shows.",
 
@@ -64,6 +65,11 @@ export const en = {
   "list.worldInfoTitle.other": "{count} world info entries",
   "list.apply": "Apply →",
   "list.noMatch": 'No personas match "{query}".',
+  "list.pinned": "Pinned",
+  "list.recent": "Recent",
+  "list.all": "All",
+  "list.pin": "Pin to top",
+  "list.unpin": "Unpin",
 
   // ---- BackgroundPicker.tsx ----
   "bg.blurb": "Sets the scene behind the chat. Purely visual — never touches what gets sent.",
@@ -75,8 +81,8 @@ export const en = {
   "confirm.deleteBackground": "Delete this background image?",
 
   // ---- popup.tsx ----
-  "popup.activeOn": "Active on chat.deepseek.com",
-  "popup.hint": "Open chat.deepseek.com — the Persona button appears bottom-right.",
+  "popup.activeOn": "Active on supported sites",
+  "popup.hint": "Open a supported chat site (chat.deepseek.com or claude.ai) — the Persona button appears bottom-right.",
   "popup.manage": "Manage personas",
 
   // ---- options.tsx ----
@@ -84,6 +90,7 @@ export const en = {
   "options.export": "Export backup",
   "options.import": "Import backup",
   "options.new": "+ New persona",
+  "options.copyName": "{name} (copy)",
   "options.listHeading": "Personas ({count})",
   "options.worldInfoCount.one": "📖 {count} world info entry",
   "options.worldInfoCount.other": "📖 {count} world info entries",
@@ -98,7 +105,12 @@ export const en = {
   "field.greeting": "Greeting (optional)",
   "field.driftReminder":
     "In-character reminder (optional) — resurfaces every few enrich-taps to fight drift",
-  "field.background": "Background (optional)",
+  "field.background": "Background preset (optional)",
+  "field.backgroundImage": "Scene background image (optional)",
+  "field.backgroundImage.upload": "Upload image",
+  "field.backgroundImage.replace": "Replace",
+  "field.backgroundImage.hint":
+    "Overrides the preset above — applied when you switch to this persona.",
   "placeholder.exampleDialogue": "User: ...\nCharacter: ...",
   "placeholder.keys": "keys, comma, separated",
   "placeholder.loreContent": "Lore to inject when a key matches the draft message",
@@ -134,6 +146,8 @@ export const en = {
   "tag.companion": "Companion",
   "tag.fantasy": "Fantasy",
   "tag.mystery": "Mystery",
+  "tag.imagegen": "Image Prompts",
+  "tag.creative": "Creative",
 
   // ---- background preset labels & categories ----
   "bg.bg_slate_focus": "Slate Focus",
@@ -182,4 +196,28 @@ export const en = {
   "cardImport.findMore": "Find more characters ↗",
   "cardImport.findMoreHint":
     "Opens chub.ai in a new tab — a third-party character card community, not affiliated with us. Cards you download there work with \"Import character card\" above.",
+
+  // ---- world info V3 decorators (options.tsx editor + world-info.ts labels) ----
+  "worldbook.advanced": "Advanced",
+  "worldbook.constant": "Always inject (constant)",
+  "worldbook.constantHint":
+    "Always injected on every Enrich, regardless of keywords. A description-slot position below also places a copy in the activation message when you apply the persona.",
+  "worldbook.position": "Position",
+  "worldbook.positionHint":
+    "Only affects always-inject entries — which activation-message slot this lore also folds into.",
+  "worldbook.position.none": "Default (in enrich block)",
+  "worldbook.position.before_desc": "Before persona",
+  "worldbook.position.after_desc": "After persona",
+  "worldbook.position.personality": "With personality",
+  "worldbook.position.scenario": "With scenario",
+  "worldbook.position.at_depth": "By depth",
+  "worldbook.depth": "Depth",
+  "worldbook.depthHint": "Higher sits farther from your draft (ordering only — not chat history).",
+  "worldbook.role": "Role label",
+  "worldbook.role.default": "None (📖)",
+  "worldbook.role.system": "System",
+  "worldbook.role.user": "User",
+  "worldbook.role.assistant": "Assistant",
+  "worldbook.label.system": "⚙️ System note:",
+  "worldbook.label.assistant": "🎭 In character:",
 } as const

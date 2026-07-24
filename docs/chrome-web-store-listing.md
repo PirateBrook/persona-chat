@@ -23,19 +23,19 @@ chat history" was the reviewer's first unspoken worry, and it shouldn't wait
 until paragraph 6 to get answered.
 
 **English:**
-> Give DeepSeek a roleplay persona — a bar owner, a talking cat, and more — 100% free, no chat data ever uploaded, no API key.
+> Give DeepSeek or Claude a roleplay persona — a bar owner, a talking cat & more. 100% free, no chat data uploaded, no API key.
 
 **中文:**
-> 给 DeepSeek 装上「深夜小酒馆的老板」「不讲逻辑的猫」等角色扮演人设——完全免费、不上传聊天记录、无需 API Key。
+> 给 DeepSeek 或 Claude 装上「深夜小酒馆的老板」「不讲逻辑的猫」等角色扮演人设——完全免费、不上传聊天记录、无需 API Key。
 
 ## Detailed description
 
 **English:**
 
-> Persona.chat turns your free chat.deepseek.com session into a roleplay and
-> companion chat platform — no API key, no subscription, no server of ours
-> in the middle. It rides your own DeepSeek login the same way you already
-> use it; we just help you set the scene.
+> Persona.chat turns your free DeepSeek or Claude.ai session into a roleplay
+> and companion chat platform — no API key, no subscription, no server of
+> ours in the middle. It rides your own login on either site the same way you
+> already use it; we just help you set the scene.
 >
 > Nothing you type ever leaves your browser. Every persona, world info
 > entry, and background image lives only in your own local storage — we
@@ -60,22 +60,22 @@ until paragraph 6 to get answered.
 > Scenes — 12 hand-tuned CSS backgrounds across five moods, or upload
 > your own photos — swap the whole atmosphere behind the chat in one click.
 >
-> Page tweaks — hide DeepSeek's "reasoning trace" block if you just want
-> the answer.
+> Page tweaks — on DeepSeek, hide its "reasoning trace" block if you just
+> want the answer.
 >
 > Bilingual — full English/Chinese UI and content, auto-detected from
 > your browser language.
 >
 > Everything you type is still sent the normal way, by you, pressing Enter —
 > Persona.chat only ever prepares the message; it never sends anything on
-> its own. Add it free, pick a persona, and turn your next DeepSeek chat
-> into a scene.
+> its own. Add it free, pick a persona, and turn your next DeepSeek or
+> Claude chat into a scene.
 
 **中文:**
 
-> Persona.chat 让你免费的 chat.deepseek.com 会话变成一个角色扮演/陪伴聊天
-> 平台——不需要 API Key,不需要订阅,中间也没有我们自己的服务器。它就是骑在
-> 你本来就在用的 DeepSeek 登录会话上,我们只是帮你把场景搭好。
+> Persona.chat 让你免费的 DeepSeek 或 Claude.ai 会话变成一个角色扮演/陪伴
+> 聊天平台——不需要 API Key,不需要订阅,中间也没有我们自己的服务器。它就是
+> 骑在你本来就在用的登录会话上(两个站点都行),我们只是帮你把场景搭好。
 >
 > 不上传你的任何聊天内容。角色、世界设定、背景图片全部只存在你自己的
 > 浏览器本地——我们没有服务器,也没有地方可以接收你的数据。具体细节见我们的
@@ -96,13 +96,13 @@ until paragraph 6 to get answered.
 > 场景——12 款手工调校的 CSS 背景,覆盖五种氛围,也可以直接上传自己的
 > 照片——一键切换聊天背后的整个氛围。
 >
-> 页面定制——想直接看答案的话,可以隐藏 DeepSeek 的"已思考"过程展示。
+> 页面定制——在 DeepSeek 上,想直接看答案可以隐藏它的"已思考"过程展示。
 >
 > 中英双语——界面和内容全面支持中英文,根据浏览器语言自动检测。
 >
 > 你发送的每一条消息,依然是你自己按回车发出去的——Persona.chat 只负责把
 > 消息准备好,绝不会替你自动发送任何内容。免费装上,选一个角色,下一次打开
-> DeepSeek 就能开始。
+> DeepSeek 或 Claude 就能开始。
 
 ## ASO audit notes (marketing-skills:aso, this pass)
 
@@ -122,10 +122,22 @@ below for status.
   specifically because uploaded background photos (even downscaled and
   compressed client-side) can approach or exceed it with a handful of
   images saved.
-- **Host permission: `https://chat.deepseek.com/*`** — The extension's
-  entire function is a content-script UI on this one page: showing the
-  persona panel, reading the chat input box's current draft, and writing a
-  composed message into it. No other host is accessed.
+- **Host permissions: `https://chat.deepseek.com/*` and `https://claude.ai/*`**
+  — The extension's entire function is a content-script UI on these official
+  free LLM web-chat pages: showing the persona panel, reading the chat input
+  box's current draft, and writing a composed message into it. Both hosts
+  serve the same single purpose (a roleplay/persona layer for a free web
+  chat); each host is the minimum needed to inject on that site. No other host
+  is accessed; no `<all_urls>` or broad permissions are requested.
+- **`tts`** — Powers the optional "read the reply aloud" feature (voice
+  picker + playback in the Persona panel). Uses Chrome's own on-device
+  `chrome.tts` engine only; no audio or text is sent to any third-party or
+  first-party server.
+
+## Developer account contact
+
+Support email for the CWS developer dashboard: punkscosmos@gmail.com
+(personal address — there's no company mailbox).
 
 ## Assets checklist
 
@@ -147,7 +159,14 @@ below for status.
 - [ ] CWS developer dashboard "Privacy practices" disclosure tab — a separate
       form from the hosted privacy policy link above; must be filled in at
       submission time (data usage categories, purpose, no third-party sale).
-- [ ] Screenshot 1 needs a retake — its sidebar shows real personal DeepSeek
-      chat history (e.g. actual past conversation titles), which visually
-      undercuts the "nothing you type ever leaves your browser" pitch right
-      next to it. Recapture with the sidebar collapsed or a clean account.
+- [x] Screenshot 1 retaken with sidebar collapsed — no longer leaks real
+      personal DeepSeek chat history (verified 2026-07-21).
+- [x] Claude.ai screenshots added (1280×800, browser-cdp on a live logged-in
+      session; sidebar collapsed + org badge hidden so no private chat history
+      or account/org data shows):
+      `screenshot-5-claude-personas.png` (persona panel/list on claude.ai),
+      `screenshot-6-claude-injected.png` (a persona's opening message injected
+      into Claude's composer, over a scene background).
+      Give them a final eyeball before submitting. Minor known cosmetic: some
+      persona tags render in English on a zh UI (a few tags lack zh
+      translations) — separate i18n gap, not a screenshot blocker.

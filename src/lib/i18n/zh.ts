@@ -9,7 +9,7 @@ export const zh: Messages = {
   "wrap.ackPlain": "用角色的口吻简短确认，然后等待我的第一个问题。",
 
   // ---- use-persona-enrich.ts ----
-  "enrich.failed": "增强失败——试试刷新 DeepSeek。",
+  "enrich.failed": "增强失败——试试刷新页面。",
   "enrich.nothingYet": "暂时没有可增强的内容。",
   "enrich.nothingNew": "没有新增内容——直接发送即可。",
   "enrich.loreNote.one": "{count} 条设定",
@@ -32,6 +32,7 @@ export const zh: Messages = {
   "common.delete": "删除",
   "common.save": "保存",
   "common.cancel": "取消",
+  "common.duplicate": "复制",
 
   // ---- PersonaPanel.tsx ----
   "panel.deactivate": "停用",
@@ -49,7 +50,7 @@ export const zh: Messages = {
   "tab.tweaks": "定制",
 
   // ---- PageTweaksPanel.tsx ----
-  "tweaks.blurb": "直接作用于 DeepSeek 页面本身的一些小改造。",
+  "tweaks.blurb": "直接作用于聊天页面本身的一些小改造。",
   "tweaks.hideThinking": "隐藏思考过程",
   "tweaks.hideThinkingDesc": "折叠 DeepSeek 的「已思考」区块——最终回答仍会正常显示。",
 
@@ -61,6 +62,11 @@ export const zh: Messages = {
   "list.worldInfoTitle.other": "{count} 条世界设定",
   "list.apply": "应用 →",
   "list.noMatch": "没有匹配「{query}」的角色。",
+  "list.pinned": "已固定",
+  "list.recent": "最近使用",
+  "list.all": "全部",
+  "list.pin": "固定到顶部",
+  "list.unpin": "取消固定",
 
   // ---- BackgroundPicker.tsx ----
   "bg.blurb": "为对话设置背景氛围。纯视觉效果——绝不影响实际发送的内容。",
@@ -72,8 +78,8 @@ export const zh: Messages = {
   "confirm.deleteBackground": "确定删除这张背景图片吗？",
 
   // ---- popup.tsx ----
-  "popup.activeOn": "正在 chat.deepseek.com 上使用",
-  "popup.hint": "打开 chat.deepseek.com——Persona 按钮会出现在右下角。",
+  "popup.activeOn": "已在支持的站点使用",
+  "popup.hint": "打开支持的站点（chat.deepseek.com 或 claude.ai）——Persona 按钮会出现在右下角。",
   "popup.manage": "管理角色",
 
   // ---- options.tsx ----
@@ -81,6 +87,7 @@ export const zh: Messages = {
   "options.export": "导出备份",
   "options.import": "导入备份",
   "options.new": "+ 新建角色",
+  "options.copyName": "{name}（副本）",
   "options.listHeading": "角色（{count}）",
   "options.worldInfoCount.one": "📖 {count} 条世界设定",
   "options.worldInfoCount.other": "📖 {count} 条世界设定",
@@ -94,7 +101,11 @@ export const zh: Messages = {
   "field.exampleDialogue": "示例对话（可选）——锁定语气 / 风格",
   "field.greeting": "开场白（可选）",
   "field.driftReminder": "角色提醒（可选）——每隔几次增强就重现一次，防止角色跑偏",
-  "field.background": "背景（可选）",
+  "field.background": "背景预设（可选）",
+  "field.backgroundImage": "场景背景图片（可选）",
+  "field.backgroundImage.upload": "上传图片",
+  "field.backgroundImage.replace": "替换",
+  "field.backgroundImage.hint": "会覆盖上面的预设——切换到该人设时自动应用。",
   "placeholder.exampleDialogue": "用户：……\n角色：……",
   "placeholder.keys": "关键词，用逗号分隔",
   "placeholder.loreContent": "当关键词匹配到草稿内容时注入的设定",
@@ -129,6 +140,8 @@ export const zh: Messages = {
   "tag.companion": "陪伴",
   "tag.fantasy": "奇幻",
   "tag.mystery": "推理",
+  "tag.imagegen": "生图提示词",
+  "tag.creative": "创意写作",
 
   // ---- background preset labels & categories ----
   "bg.bg_slate_focus": "石板专注",
@@ -174,5 +187,27 @@ export const zh: Messages = {
   "cardImport.error.missing_name": "这张角色卡没有名称字段。",
   "cardImport.error.unknown": "导入这张角色卡失败。",
   "cardImport.findMore": "去找更多角色 ↗",
-  "cardImport.findMoreHint": "在新标签页打开 chub.ai——一个第三方角色卡社区，与本插件无关。在那里下载的角色卡可以用上面的「导入角色卡」导入。"
+  "cardImport.findMoreHint": "在新标签页打开 chub.ai——一个第三方角色卡社区，与本插件无关。在那里下载的角色卡可以用上面的「导入角色卡」导入。",
+
+  // ---- world info V3 decorators (options.tsx editor + world-info.ts labels) ----
+  "worldbook.advanced": "高级",
+  "worldbook.constant": "常驻注入（constant）",
+  "worldbook.constantHint": "每次增强都注入，无视关键词。若再设下面的描述槽「位置」，应用人设时会在激活消息里额外放一份。",
+  "worldbook.position": "位置",
+  "worldbook.positionHint": "仅对常驻注入条目生效：这条设定还会折叠进激活消息的哪个槽位。",
+  "worldbook.position.none": "默认（在增强块中）",
+  "worldbook.position.before_desc": "人设描述前",
+  "worldbook.position.after_desc": "人设描述后",
+  "worldbook.position.personality": "随性格",
+  "worldbook.position.scenario": "随场景",
+  "worldbook.position.at_depth": "按深度",
+  "worldbook.depth": "深度",
+  "worldbook.depthHint": "越大越远离你的草稿（仅用于排序，不涉及聊天历史）。",
+  "worldbook.role": "角色标签",
+  "worldbook.role.default": "无（📖）",
+  "worldbook.role.system": "系统",
+  "worldbook.role.user": "用户",
+  "worldbook.role.assistant": "角色",
+  "worldbook.label.system": "⚙️ 系统设定：",
+  "worldbook.label.assistant": "🎭 角色设定："
 }

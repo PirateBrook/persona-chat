@@ -52,9 +52,21 @@ export async function setPersonaMap(map: Record<string, PersonaCard>): Promise<v
   await setRaw(KEY_PERSONAS, map)
 }
 
+/**
+ * Persona list ordering, shared by listPersonas and seed.ts's ensureSeeds so
+ * every surface agrees: pinned entries first, then most-recently-used
+ * ("Apply"), then most-recently-updated (edited/created).
+ */
+export function comparePersonas(a: PersonaCard, b: PersonaCard): number {
+  if (!!a.pinned !== !!b.pinned) return a.pinned ? -1 : 1
+  const used = (b.lastUsedAt ?? 0) - (a.lastUsedAt ?? 0)
+  if (used !== 0) return used
+  return b.updatedAt - a.updatedAt
+}
+
 export async function listPersonas(): Promise<PersonaCard[]> {
   const map = await getPersonaMap()
-  return Object.values(map).sort((a, b) => b.updatedAt - a.updatedAt)
+  return Object.values(map).sort(comparePersonas)
 }
 
 export async function getPersona(id: string): Promise<PersonaCard | null> {
@@ -71,6 +83,28 @@ export async function upsertPersona(card: PersonaCard): Promise<void> {
 export async function deletePersona(id: string): Promise<void> {
   const map = await getPersonaMap()
   delete map[id]
+  await setPersonaMap(map)
+}
+
+/**
+ * Records that a persona was applied. Sets `lastUsedAt` only — NOT `updatedAt`
+ * — so most-recently-used ordering works without making every apply look like
+ * an edit (which would also fight ensureSeeds' seed-refresh comparison).
+ */
+export async function markPersonaUsed(id: string): Promise<void> {
+  const map = await getPersonaMap()
+  const p = map[id]
+  if (!p) return
+  map[id] = { ...p, lastUsedAt: Date.now() }
+  await setPersonaMap(map)
+}
+
+/** Pins / unpins a persona (list ordering only; doesn't bump updatedAt). */
+export async function setPersonaPinned(id: string, pinned: boolean): Promise<void> {
+  const map = await getPersonaMap()
+  const p = map[id]
+  if (!p) return
+  map[id] = { ...p, pinned }
   await setPersonaMap(map)
 }
 

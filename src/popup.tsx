@@ -41,7 +41,7 @@ export default function Popup() {
           </span>
           <div className="min-w-0">
             <div className="truncate text-sm font-medium">{activePersona.name}</div>
-            <div className="flex items-center gap-1 text-[10px] text-persona-600 dark:text-persona-300">
+            <div className="flex items-center gap-1 text-[11px] text-persona-600 dark:text-persona-300">
               <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
               {t("popup.activeOn")}
             </div>
