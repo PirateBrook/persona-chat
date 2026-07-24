@@ -140,6 +140,8 @@ export const zh: Messages = {
   "tag.companion": "陪伴",
   "tag.fantasy": "奇幻",
   "tag.mystery": "推理",
+  "tag.imagegen": "生图提示词",
+  "tag.creative": "创意写作",
 
   // ---- background preset labels & categories ----
   "bg.bg_slate_focus": "石板专注",

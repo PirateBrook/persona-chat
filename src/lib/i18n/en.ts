@@ -146,6 +146,8 @@ export const en = {
   "tag.companion": "Companion",
   "tag.fantasy": "Fantasy",
   "tag.mystery": "Mystery",
+  "tag.imagegen": "Image Prompts",
+  "tag.creative": "Creative",
 
   // ---- background preset labels & categories ----
   "bg.bg_slate_focus": "Slate Focus",
