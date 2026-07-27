@@ -1,7 +1,8 @@
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 
 import "./style.css"
 
+import appIcon from "../assets/icon.png"
 import { BACKGROUND_PRESETS } from "~lib/backgrounds"
 import {
   CharacterCardImportError,
@@ -9,6 +10,7 @@ import {
   parseCharacterCardFile
 } from "~lib/character-card-import"
 import { useI18n, type MessageKey } from "~lib/i18n"
+import { translateTag } from "~lib/i18n/tags"
 import { resizeImageFile } from "~lib/image-resize"
 import { INPUT_BASE_CLS } from "~lib/styles"
 import { ensureSeeds } from "~seed"
@@ -53,6 +55,34 @@ export default function Options() {
   const [editing, setEditing] = useState<PersonaCard | null>(null)
   const [worldInfoKeysDraft, setWorldInfoKeysDraft] = useState<Record<string, string>>({})
   const [appState, setAppStateLocal] = useState<AppState | null>(null)
+  const [query, setQuery] = useState("")
+  const [tagFilter, setTagFilter] = useState<string | null>(null)
+
+  // 100+ built-in personas make a flat, unfiltered list unscannable — mirrors
+  // the search/tag-chip filtering already proven out in PersonaList.tsx (the
+  // content-script panel), applied here to the editor's own list column.
+  const allTags = useMemo(() => {
+    const counts = new Map<string, number>()
+    for (const p of personas) {
+      for (const tag of p.tags ?? []) counts.set(tag, (counts.get(tag) ?? 0) + 1)
+    }
+    return Array.from(counts.entries())
+      .sort((a, b) => b[1] - a[1])
+      .map(([tag]) => tag)
+  }, [personas])
+
+  const visiblePersonas = useMemo(() => {
+    const q = query.trim().toLowerCase()
+    return personas.filter((p) => {
+      if (tagFilter && !(p.tags ?? []).includes(tagFilter)) return false
+      if (!q) return true
+      return (
+        p.name.toLowerCase().includes(q) ||
+        p.personaPrompt.toLowerCase().includes(q) ||
+        (p.tags ?? []).some((tag) => tag.toLowerCase().includes(q))
+      )
+    })
+  }, [personas, query, tagFilter])
 
   useEffect(() => {
     // Installs missing seeds and refreshes non-customized ones to the
@@ -286,12 +316,12 @@ export default function Options() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 font-sans text-gray-900 dark:bg-gray-950 dark:text-gray-100">
-      <div className="mx-auto max-w-4xl px-6 py-8">
-        <header className="mb-6 flex items-center justify-between">
+    <div className="flex h-screen flex-col bg-gray-50 font-sans text-gray-900 dark:bg-gray-950 dark:text-gray-100">
+      <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col px-6 py-8">
+        <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
             <h1 className="flex items-center gap-2.5 text-2xl font-bold tracking-tight">
-              <span className="h-3 w-3 rounded-full bg-gradient-to-br from-persona-400 to-persona-600" />
+              <img src={appIcon} alt="" className="h-7 w-7 rounded-full" />
               Persona
             </h1>
             <p className="text-sm text-gray-500 dark:text-gray-400">{t("options.subtitle")}</p>
@@ -361,8 +391,8 @@ export default function Options() {
           </div>
         </header>
 
-        <section className="mb-6 flex items-center gap-2.5 rounded-xl border border-gray-200 bg-white p-3.5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <label className="text-xs font-medium text-gray-600 dark:text-gray-400" htmlFor="user-name-input">
+        <section className="mb-6 inline-flex w-fit shrink-0 items-center gap-2.5 self-start rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <label className="whitespace-nowrap text-xs font-medium text-gray-600 dark:text-gray-400" htmlFor="user-name-input">
             {t("options.userName")}
           </label>
           <input
@@ -370,77 +400,126 @@ export default function Options() {
             value={appState?.userName ?? ""}
             onChange={(e) => void handleUserNameChange(e.target.value)}
             placeholder={t("options.userNamePlaceholder")}
-            className={`max-w-xs ${INPUT_CLS_SMALL}`}
+            className={`w-56 ${INPUT_CLS_SMALL}`}
           />
         </section>
 
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-          <section>
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
-              {t("options.listHeading", { count: personas.length })}
+        <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 md:grid-cols-2">
+          <section className="flex min-h-0 flex-col">
+            <h2 className="mb-3 shrink-0 text-xs font-semibold uppercase tracking-wider text-gray-500">
+              {t("options.listHeading", { count: visiblePersonas.length })}
             </h2>
-            <ul className="space-y-2">
-              {personas.map((p) => (
-                <li
-                  key={p.id}
-                  className="rounded-xl border border-gray-200 bg-white p-3.5 shadow-sm transition hover:shadow dark:border-gray-800 dark:bg-gray-900"
-                >
-                  <div className="flex items-start gap-3">
-                    {p.avatarImageDataUrl ? (
-                      <img
-                        src={p.avatarImageDataUrl}
-                        alt=""
-                        className="h-9 w-9 shrink-0 rounded-full object-cover"
-                      />
-                    ) : (
-                      <span className="text-2xl">{p.avatarEmoji}</span>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="font-semibold">{p.name}</div>
-                      <div className="mt-1 line-clamp-2 text-xs text-gray-500 dark:text-gray-400">
-                        {p.personaPrompt}
-                      </div>
-                      {(p.worldInfo?.length ?? 0) > 0 && (
-                        <div className="mt-1 text-[11px] text-persona-600">
-                          {tp("options.worldInfoCount", p.worldInfo!.length)}
-                        </div>
-                      )}
-                    </div>
-                    <div className="flex flex-col gap-1">
+            <div className="mb-2 shrink-0 space-y-2">
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t("list.searchPlaceholder")}
+                className={INPUT_CLS_SMALL}
+              />
+              {allTags.length > 0 && (
+                // A single scrollable row, not flex-wrap: with 100+ personas
+                // (and any imported cards' own tag vocabulary) the tag set
+                // easily reaches 20+ unique values — wrapping would eat most
+                // of this column's fixed height before the actual list gets
+                // any room to breathe (confirmed via a real-machine
+                // screenshot: 4 wrapped rows left only ~4 cards' worth of
+                // scroll space). A fixed single line keeps the tag filter's
+                // footprint constant regardless of how many tags exist.
+                <div className="scrollbar-slim flex gap-1 overflow-x-auto pb-1">
+                  {allTags.map((tag) => {
+                    const selected = tag === tagFilter
+                    return (
+                      <button
+                        key={tag}
+                        onClick={() => setTagFilter(selected ? null : tag)}
+                        className={`shrink-0 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-medium transition ${
+                          selected
+                            ? "bg-persona-600 text-white shadow-sm"
+                            : "bg-gray-100 text-gray-500 hover:bg-gray-200 hover:text-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-gray-200"
+                        }`}
+                      >
+                        {translateTag(locale, tag) ?? tag}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+            <ul className="scrollbar-slim min-h-0 flex-1 space-y-2 overflow-y-auto pr-1">
+              {visiblePersonas.map((p) => {
+                const isActive = p.id === appState?.activePersonaId
+                return (
+                  <li key={p.id}>
+                    <div
+                      className={`group flex items-center rounded-xl border transition ${
+                        isActive
+                          ? "border-persona-200 bg-persona-50/60 dark:border-persona-900/60 dark:bg-persona-950/30"
+                          : "border-gray-200 bg-white hover:shadow dark:border-gray-800 dark:bg-gray-900"
+                      }`}
+                    >
                       <button
                         onClick={() => startEdit(p.id)}
-                        className="rounded px-2 py-1 text-xs text-persona-600 hover:bg-persona-50 dark:hover:bg-gray-800"
+                        className="flex min-w-0 flex-1 items-center gap-3 p-3 text-left"
                       >
-                        {t("common.edit")}
+                        {p.avatarImageDataUrl ? (
+                          <img
+                            src={p.avatarImageDataUrl}
+                            alt=""
+                            className="h-9 w-9 shrink-0 rounded-full object-cover"
+                          />
+                        ) : (
+                          <span className="text-xl">{p.avatarEmoji}</span>
+                        )}
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-center gap-1.5">
+                            <span className="truncate text-sm font-semibold">{p.name}</span>
+                            {isActive && (
+                              <span className="shrink-0 rounded-full bg-persona-600 px-1.5 py-0.5 text-[10px] font-medium text-white">
+                                {t("common.active")}
+                              </span>
+                            )}
+                          </div>
+                          <div className="truncate text-xs text-gray-500 dark:text-gray-400">
+                            {p.personaPrompt}
+                          </div>
+                        </div>
+                        <span className="ml-auto hidden shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium text-persona-600 opacity-0 transition group-hover:opacity-100 dark:text-persona-300 sm:block">
+                          {t("common.edit")}
+                        </span>
                       </button>
-                      <button
-                        onClick={() => duplicatePersona(p)}
-                        className="rounded px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
-                      >
-                        {t("common.duplicate")}
-                      </button>
-                      <button
-                        onClick={() => remove(p.id)}
-                        className="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-gray-800"
-                      >
-                        {t("common.delete")}
-                      </button>
+                      <div className="flex shrink-0 items-center gap-0.5 pr-2 opacity-0 transition group-hover:opacity-100">
+                        <button
+                          onClick={() => duplicatePersona(p)}
+                          className="rounded px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                        >
+                          {t("common.duplicate")}
+                        </button>
+                        <button
+                          onClick={() => remove(p.id)}
+                          className="rounded px-2 py-1 text-xs text-red-500 hover:bg-red-50 dark:hover:bg-gray-800"
+                        >
+                          {t("common.delete")}
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                </li>
-              ))}
-              {personas.length === 0 && (
+                  </li>
+                )
+              })}
+              {visiblePersonas.length === 0 && (
                 <li className="rounded-xl border border-dashed border-gray-300 p-8 text-center text-sm text-gray-400 dark:border-gray-700">
-                  {t("options.listEmpty")}
+                  {personas.length === 0
+                    ? t("options.listEmpty")
+                    : t("list.noMatch", { query: query || tagFilter || "" })}
                 </li>
               )}
             </ul>
           </section>
 
-          <section>
-            <h2 className="mb-3 text-xs font-semibold uppercase tracking-wider text-gray-500">
+          <section className="flex min-h-0 flex-col">
+            <h2 className="mb-3 shrink-0 text-xs font-semibold uppercase tracking-wider text-gray-500">
               {editing ? t("options.editorHeading") : t("options.previewHeading")}
             </h2>
+            <div className="scrollbar-slim min-h-0 flex-1 overflow-y-auto pr-1">
             {editing ? (
               <div className="space-y-3.5 rounded-xl border border-gray-200 bg-white p-5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
                 <FormField label={t("field.name")}>
@@ -770,6 +849,7 @@ export default function Options() {
                 {t("options.previewEmpty")}
               </div>
             )}
+            </div>
           </section>
         </div>
       </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState, type FC } from "react"
 
+import appIcon from "../../assets/icon.png"
 import { getActiveAdapter, type InjectResult } from "../lib/adapters"
 import { extensionContext } from "../lib/extension-context"
 import { useI18n } from "../lib/i18n"
@@ -253,7 +254,7 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
     <div className="relative flex min-h-0 flex-1 flex-col font-sans">
       <header className="flex items-center justify-between px-4 pt-3">
         <div className="flex items-center gap-2">
-          <span className="h-2 w-2 rounded-full bg-gradient-to-br from-persona-400 to-persona-600" />
+          <img src={appIcon} alt="" className="h-4 w-4 rounded-full" />
           <span className="text-sm font-semibold tracking-tight text-gray-900 dark:text-gray-50">
             Persona
           </span>
