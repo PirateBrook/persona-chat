@@ -29,7 +29,7 @@ export const PersonaList: FC<Props> = ({
   const allTags = useMemo(() => {
     const counts = new Map<string, number>()
     for (const p of personas) {
-      for (const tag of p.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1)
+      for (const tag of p.tags ?? []) counts.set(tag, (counts.get(tag) ?? 0) + 1)
     }
     // Most-used tags first so the chip row stays scannable as the library grows.
     return Array.from(counts.entries())
@@ -42,12 +42,12 @@ export const PersonaList: FC<Props> = ({
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase()
     return personas.filter((p) => {
-      if (tagFilter && !p.tags.includes(tagFilter)) return false
+      if (tagFilter && !(p.tags ?? []).includes(tagFilter)) return false
       if (!q) return true
       return (
         p.name.toLowerCase().includes(q) ||
         p.personaPrompt.toLowerCase().includes(q) ||
-        p.tags.some((tag) => tag.toLowerCase().includes(q))
+        (p.tags ?? []).some((tag) => tag.toLowerCase().includes(q))
       )
     })
   }, [personas, query, tagFilter])
