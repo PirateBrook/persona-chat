@@ -20,8 +20,17 @@ export interface EnrichOutcome {
  * only rewrites whatever is currently sitting in the chat input; the human
  * still presses Enter. Turn/trigger state lives in refs so taps accumulate
  * across renders but reset the moment the active persona changes.
+ *
+ * `userName` is the global {{user}} macro value (AppState.userName, unset =
+ * locale-aware fallback) — threaded through to composeEnrichedMessage so
+ * matched lore/drift-reminder text expands macros the same way the
+ * activation message does.
  */
-export function usePersonaEnrich(activePersona: PersonaCard | null, locale: Locale) {
+export function usePersonaEnrich(
+  activePersona: PersonaCard | null,
+  locale: Locale,
+  userName: string | undefined
+) {
   const turnCountRef = useRef(0)
   const triggeredRef = useRef<Set<string>>(new Set())
   const personaIdRef = useRef<string | null>(null)
@@ -58,7 +67,9 @@ export function usePersonaEnrich(activePersona: PersonaCard | null, locale: Loca
       draft,
       matched,
       driftDue ? activePersona.driftReminder : undefined,
-      locale
+      locale,
+      activePersona.name,
+      userName
     )
 
     const result = await adapter.injectText(composed)

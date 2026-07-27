@@ -1,7 +1,7 @@
 {
   "name": "persona-chat",
   "displayName": "Persona.chat",
-  "version": "0.0.1",
+  "version": "0.1.0",
   "description": "Give your AI a persona. One-click persona switching, world info, and scene backgrounds for DeepSeek and Claude.",
   "author": "punkscosmos.com",
   "private": true,

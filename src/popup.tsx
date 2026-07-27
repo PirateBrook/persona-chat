@@ -2,6 +2,7 @@ import { useEffect, useState } from "react"
 
 import "./style.css"
 
+import appIcon from "../assets/icon.png"
 import { useI18n } from "~lib/i18n"
 import { getAppState, getPersona } from "~storage"
 import type { PersonaCard } from "~types"
@@ -30,7 +31,7 @@ export default function Popup() {
   return (
     <div className="w-72 bg-white p-4 font-sans text-gray-900 dark:bg-gray-900 dark:text-gray-100">
       <div className="mb-4 flex items-center gap-2">
-        <span className="h-2.5 w-2.5 rounded-full bg-gradient-to-br from-persona-400 to-persona-600" />
+        <img src={appIcon} alt="" className="h-5 w-5 rounded-full" />
         <span className="text-sm font-semibold tracking-tight">Persona</span>
       </div>
 

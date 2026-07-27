@@ -20,6 +20,13 @@ export const zh: Messages = {
   // ---- contents/deepseek.tsx ----
   "pill.enrich": "增强",
 
+  // ---- PlatformOverlay.tsx (anti-cross-talk guard) ----
+  "guard.button": "反串扮",
+  "guard.reminder": "不要替 {{user}} 编写台词、动作或内心想法。只以 {{char}} 的身份说话和行动。",
+
+  // ---- lib/macros.ts ----
+  "macro.user.default": "用户",
+
   // ---- FloatingButton.tsx ----
   "fab.open": "打开 Persona 面板",
   "fab.close": "关闭 Persona 面板",
@@ -122,6 +129,8 @@ export const zh: Messages = {
   "select.none": "无",
   "options.backgroundOption": "{label}（{category}）",
   "options.language": "语言",
+  "options.userName": "你的名字（用于 {{user}}）",
+  "options.userNamePlaceholder": "用户（默认）",
   "lang.auto": "跟随浏览器",
   "lang.en": "English",
   "lang.zh": "中文",

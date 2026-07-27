@@ -145,6 +145,11 @@ export interface AppState {
   /** Last tag filter chosen in the persona list, remembered across panel
    *  reopens. `null` = no filter. */
   personaTagFilter?: string | null
+  /** Expansion value for the `{{user}}` macro (see lib/macros.ts) — a
+   *  global setting, not per-persona. Optional: unset falls back to a
+   *  locale-aware default noun ("User"/"用户") at expansion time, so macro
+   *  expansion works correctly with zero configuration. */
+  userName?: string
 }
 
 export const DEFAULT_APP_STATE: AppState = {

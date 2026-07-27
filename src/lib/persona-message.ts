@@ -1,5 +1,6 @@
 import type { Locale, PersonaCard, WorldInfoEntry } from "../types"
 import { translate } from "./i18n"
+import { buildMacroContext, expandMacros } from "./macros"
 import { isActivationFolded, loreLabel } from "./world-info"
 
 /**
@@ -19,29 +20,42 @@ import { isActivationFolded, loreLabel } from "./world-info"
  * The wrapper meta-instructions must be in the same language as the persona
  * content and the model's reply, so a zh user's DeepSeek stays in Chinese —
  * hence `locale`, not a fixed English wrapper.
+ *
+ * Every piece of persona-authored text (prompt/scenario/example/greeting/
+ * folded lore) is run through `expandMacros` before being pushed into
+ * `lines`, so `{{char}}`/`{{user}}`/`{{random:...}}` tokens commonly found in
+ * imported SillyTavern/chub.ai cards resolve to real values instead of
+ * showing up as literal `{{...}}` strings. The wrapper meta-instructions
+ * themselves (`t("wrap.intro")` etc.) are our own UI copy, not
+ * persona-authored, so they're left untouched.
  */
-export function buildPersonaMessage(persona: PersonaCard, locale: Locale): string {
+export function buildPersonaMessage(
+  persona: PersonaCard,
+  locale: Locale,
+  userName?: string
+): string {
   const t = (key: Parameters<typeof translate>[1], params?: Record<string, string>) =>
     translate(locale, key, params)
+  const ctx = buildMacroContext(persona.name, userName, locale)
 
   const folded = (persona.worldInfo ?? []).filter((e) => e.enabled && isActivationFolded(e))
   const slot = (pos: WorldInfoEntry["position"]): string[] =>
     folded
       .filter((e) => e.position === pos)
-      .map((e) => `${loreLabel(e.role, locale)} ${e.content.trim()}`)
+      .map((e) => `${loreLabel(e.role, locale)} ${expandMacros(e.content.trim(), ctx)}`)
 
   const lines = [t("wrap.intro"), ""]
 
   const beforeDesc = slot("before_desc")
   if (beforeDesc.length) lines.push(...beforeDesc, "")
 
-  lines.push(persona.personaPrompt.trim(), "")
+  lines.push(expandMacros(persona.personaPrompt.trim(), ctx), "")
 
   const afterDesc = [...slot("after_desc"), ...slot("personality")]
   if (afterDesc.length) lines.push(...afterDesc, "")
 
   if (persona.scenario?.trim()) {
-    lines.push(t("wrap.scenario"), persona.scenario.trim())
+    lines.push(t("wrap.scenario"), expandMacros(persona.scenario.trim(), ctx))
     lines.push(...slot("scenario"), "")
   } else {
     const scenarioLore = slot("scenario")
@@ -49,11 +63,11 @@ export function buildPersonaMessage(persona: PersonaCard, locale: Locale): strin
   }
 
   if (persona.exampleDialogue?.trim()) {
-    lines.push(t("wrap.example"), persona.exampleDialogue.trim(), "")
+    lines.push(t("wrap.example"), expandMacros(persona.exampleDialogue.trim(), ctx), "")
   }
 
   if (persona.greeting?.trim()) {
-    lines.push(t("wrap.ackGreeting", { greeting: persona.greeting.trim() }))
+    lines.push(t("wrap.ackGreeting", { greeting: expandMacros(persona.greeting.trim(), ctx) }))
   } else {
     lines.push(t("wrap.ackPlain"))
   }

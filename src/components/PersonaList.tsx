@@ -29,7 +29,7 @@ export const PersonaList: FC<Props> = ({
   const allTags = useMemo(() => {
     const counts = new Map<string, number>()
     for (const p of personas) {
-      for (const tag of p.tags) counts.set(tag, (counts.get(tag) ?? 0) + 1)
+      for (const tag of p.tags ?? []) counts.set(tag, (counts.get(tag) ?? 0) + 1)
     }
     // Most-used tags first so the chip row stays scannable as the library grows.
     return Array.from(counts.entries())
@@ -42,12 +42,12 @@ export const PersonaList: FC<Props> = ({
   const visible = useMemo(() => {
     const q = query.trim().toLowerCase()
     return personas.filter((p) => {
-      if (tagFilter && !p.tags.includes(tagFilter)) return false
+      if (tagFilter && !(p.tags ?? []).includes(tagFilter)) return false
       if (!q) return true
       return (
         p.name.toLowerCase().includes(q) ||
         p.personaPrompt.toLowerCase().includes(q) ||
-        p.tags.some((tag) => tag.toLowerCase().includes(q))
+        (p.tags ?? []).some((tag) => tag.toLowerCase().includes(q))
       )
     })
   }, [personas, query, tagFilter])
@@ -203,9 +203,14 @@ export const PersonaList: FC<Props> = ({
           visible.map(renderRow)
         ) : (
           <>
-            {groups.pinned.length > 0 && sectionHeader(`📌 ${t("list.pinned")}`)}
+            {/* Plain concatenation, not a template literal: the production
+                build truncates a raw astral emoji to a lone high surrogate
+                whenever it sits directly before a template literal's `${`
+                (confirmed in the built bundle during pc-test real-machine
+                checks, 2026-07-27) — `+` avoids it. */}
+            {groups.pinned.length > 0 && sectionHeader("📌 " + t("list.pinned"))}
             {groups.pinned.map(renderRow)}
-            {groups.recent.length > 0 && sectionHeader(`🕒 ${t("list.recent")}`)}
+            {groups.recent.length > 0 && sectionHeader("🕒 " + t("list.recent"))}
             {groups.recent.map(renderRow)}
             {(groups.pinned.length > 0 || groups.recent.length > 0) &&
               groups.rest.length > 0 &&
