@@ -14,13 +14,16 @@ import { INPUT_BASE_CLS } from "~lib/styles"
 import { ensureSeeds } from "~seed"
 import {
   deletePersona,
+  getAppState,
   getPersona,
   listPersonas,
   makePersonaId,
   makeWorldInfoId,
+  setAppState,
   upsertPersona
 } from "~storage"
 import type {
+  AppState,
   LanguagePref,
   PersonaCard,
   WorldInfoEntry,
@@ -49,6 +52,7 @@ export default function Options() {
   const [personas, setPersonas] = useState<PersonaCard[]>([])
   const [editing, setEditing] = useState<PersonaCard | null>(null)
   const [worldInfoKeysDraft, setWorldInfoKeysDraft] = useState<Record<string, string>>({})
+  const [appState, setAppStateLocal] = useState<AppState | null>(null)
 
   useEffect(() => {
     // Installs missing seeds and refreshes non-customized ones to the
@@ -57,6 +61,15 @@ export default function Options() {
     // library, and flipping the language select below re-expands in place.
     void ensureSeeds(locale).then(setPersonas)
   }, [locale])
+
+  useEffect(() => {
+    void getAppState().then(setAppStateLocal)
+  }, [])
+
+  async function handleUserNameChange(value: string) {
+    const next = await setAppState({ userName: value })
+    setAppStateLocal(next)
+  }
 
   async function refresh() {
     setPersonas(await listPersonas())
@@ -347,6 +360,19 @@ export default function Options() {
             </button>
           </div>
         </header>
+
+        <section className="mb-6 flex items-center gap-2.5 rounded-xl border border-gray-200 bg-white p-3.5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <label className="text-xs font-medium text-gray-600 dark:text-gray-400" htmlFor="user-name-input">
+            {t("options.userName")}
+          </label>
+          <input
+            id="user-name-input"
+            value={appState?.userName ?? ""}
+            onChange={(e) => void handleUserNameChange(e.target.value)}
+            placeholder={t("options.userNamePlaceholder")}
+            className={`max-w-xs ${INPUT_CLS_SMALL}`}
+          />
+        </section>
 
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
           <section>

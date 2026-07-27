@@ -3,8 +3,10 @@ import { useEffect, useState } from "react"
 import { FloatingButton } from "~components/FloatingButton"
 import { MemoryNotePrompt } from "~components/MemoryNotePrompt"
 import { PersonaPanel } from "~components/PersonaPanel"
+import { getActiveAdapter } from "~lib/adapters"
 import { applyBackground } from "~lib/backgrounds"
 import { useI18n } from "~lib/i18n"
+import { buildMacroContext, expandMacros } from "~lib/macros"
 import { applyPageTweaks } from "~lib/page-tweaks"
 import { subscribeStorageChanged } from "~lib/storage-events"
 import { speak } from "~lib/tts"
@@ -15,10 +17,13 @@ import { DEFAULT_APP_STATE, type PersonaCard, type TtsPreference } from "~types"
 /**
  * Shared content-script overlay for every supported platform. The floating
  * button toggles the panel (all create/browse/apply surface lives there). This
- * shell also owns two things that must survive independent of whether the
- * panel is open: the persona background (applied to the real page, not the
- * shadow root) and the "✨ Enrich" pill, which needs the active persona to run
- * world-info matching without requiring the panel to be open.
+ * shell also owns things that must survive independent of whether the panel
+ * is open: the persona background (applied to the real page, not the shadow
+ * root), the "✨ Enrich" pill (needs the active persona to run world-info
+ * matching without requiring the panel to be open), and the "🎭 Guard"
+ * anti-cross-talk button (same visible-injection mechanic as Enrich, but a
+ * one-off macro-expanded reminder rather than world-info/drift matching —
+ * available whenever a persona is active, independent of `canEnrich`).
  *
  * The only per-platform difference is `assistantReplySelector` — the DOM the
  * TTS pill reads aloud and the enrich pill uses to detect a reply exists. The
@@ -36,7 +41,8 @@ export function PlatformOverlay({
   const [pillToast, setPillToast] = useState<string | null>(null)
   const [tts, setTts] = useState<TtsPreference>(DEFAULT_APP_STATE.tts)
   const [hasAssistantReply, setHasAssistantReply] = useState(false)
-  const { enrich } = usePersonaEnrich(activePersona, locale)
+  const [userName, setUserName] = useState<string | undefined>(undefined)
+  const { enrich } = usePersonaEnrich(activePersona, locale, userName)
 
   useEffect(() => {
     void refresh()
@@ -81,6 +87,7 @@ export function PlatformOverlay({
     void applyBackground(state.activeBackgroundId)
     applyPageTweaks(state.pageTweaks)
     setTts(state.tts ?? DEFAULT_APP_STATE.tts)
+    setUserName(state.userName)
 
     if (!state.activePersonaId) {
       setActivePersona(null)
@@ -102,6 +109,27 @@ export function PlatformOverlay({
     setTimeout(() => setPillToast(null), 3000)
   }
 
+  /**
+   * Anti-cross-talk guard: a one-off, macro-expanded reminder prepended above
+   * whatever's currently in the draft — same visible-injection mechanic as
+   * Enrich (readDraftText → injectText, no auto-send), but independent of it.
+   * Not tracked in turn/trigger state; every click is a fresh, standalone
+   * injection.
+   */
+  async function handleGuard() {
+    const adapter = getActiveAdapter()
+    if (!adapter || !activePersona) return
+    const draft = adapter.readDraftText()
+    const ctx = buildMacroContext(activePersona.name, userName, locale)
+    const reminder = expandMacros(t("guard.reminder"), ctx)
+    // Plain concatenation, not a template literal: the production build
+    // truncates a raw astral emoji to a lone high surrogate whenever it sits
+    // directly before a template literal's `${` (confirmed in the built
+    // bundle during pc-test real-machine checks, 2026-07-27) — `+` avoids it.
+    const composed = draft ? "🎭 " + reminder + "\n\n" + draft : "🎭 " + reminder
+    await adapter.injectText(composed)
+  }
+
   const canEnrich =
     !!activePersona && ((activePersona.worldInfo?.length ?? 0) > 0 || !!activePersona.driftReminder)
 
@@ -119,6 +147,15 @@ export function PlatformOverlay({
           className="fixed bottom-[4.6rem] right-6 z-[999999] flex h-9 items-center gap-1.5 rounded-full border border-gray-200/80 bg-white/95 px-3.5 text-[12px] font-medium text-gray-700 shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200"
         >
           <span aria-hidden>✨</span> {t("pill.enrich")}
+        </button>
+      )}
+
+      {!!activePersona && !open && (
+        <button
+          onClick={() => void handleGuard()}
+          className="fixed bottom-[4.6rem] right-56 z-[999999] flex h-9 items-center gap-1.5 rounded-full border border-gray-200/80 bg-white/95 px-3.5 text-[12px] font-medium text-gray-700 shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200"
+        >
+          <span aria-hidden>🎭</span> {t("guard.button")}
         </button>
       )}
 

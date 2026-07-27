@@ -39,12 +39,16 @@ import { TtsPanel } from "./TtsPanel"
  * input can't be located (DOM change, unknown UI variant, or unsupported
  * host).
  */
-async function applyPersona(persona: PersonaCard, locale: Locale): Promise<InjectResult> {
+async function applyPersona(
+  persona: PersonaCard,
+  locale: Locale,
+  userName: string | undefined
+): Promise<InjectResult> {
   const adapter = getActiveAdapter()
   if (!adapter) {
     return { ok: false, method: "clipboard-fallback", error: "unsupported_host" }
   }
-  const message = buildPersonaMessage(persona, locale)
+  const message = buildPersonaMessage(persona, locale, userName)
   return await adapter.injectText(message)
 }
 
@@ -161,7 +165,7 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
   }
 
   async function handleApply(persona: PersonaCard) {
-    const result = await applyPersona(persona, locale)
+    const result = await applyPersona(persona, locale, state?.userName)
     // A persona's own uploaded background image (sentinel id) wins over a
     // referenced preset/custom background.
     const background = persona.backgroundImageDataUrl

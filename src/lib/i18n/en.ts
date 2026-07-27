@@ -23,6 +23,14 @@ export const en = {
   // ---- contents/deepseek.tsx ----
   "pill.enrich": "Enrich",
 
+  // ---- PlatformOverlay.tsx (anti-cross-talk guard) ----
+  "guard.button": "Guard",
+  "guard.reminder":
+    "Do not write dialogue, actions, or thoughts for {{user}}. Only speak and act as {{char}}.",
+
+  // ---- lib/macros.ts ----
+  "macro.user.default": "User",
+
   // ---- FloatingButton.tsx ----
   "fab.open": "Open Persona panel",
   "fab.close": "Close Persona panel",
@@ -128,6 +136,8 @@ export const en = {
   "select.none": "None",
   "options.backgroundOption": "{label} ({category})",
   "options.language": "Language",
+  "options.userName": "Your name (for {{user}})",
+  "options.userNamePlaceholder": "User (default)",
   "lang.auto": "Auto (browser)",
   "lang.en": "English",
   "lang.zh": "中文",

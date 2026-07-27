@@ -1,5 +1,6 @@
 import type { Locale, WorldInfoEntry, WorldInfoPosition, WorldInfoRole } from "../types"
 import { translate } from "./i18n"
+import { buildMacroContext, expandMacros } from "./macros"
 
 /** Positions that also fold a `constant` (alwaysActive) entry into the
  *  one-time activation message (persona-message.ts), as an extra copy placed
@@ -90,21 +91,38 @@ export function loreLabel(role: WorldInfoRole | undefined, locale: Locale): stri
  * Prepends matched lore and/or a drift reminder above the user's own typed
  * text. Kept visible and clearly delimited (📖 / role label / 🎭) rather than
  * hidden, so the composed message stays legible in the chat transcript.
+ *
+ * `charName`/`userName` build a macro context (see lib/macros.ts) so
+ * `{{char}}`/`{{user}}`/`{{random:...}}` tokens inside matched entries'
+ * `content` and inside `driftReminder` expand to real values before being
+ * pushed into `blocks` — `matchWorldInfo` itself stays untouched, matching
+ * still runs against the raw draft text/keys, only compose-time text gets
+ * expanded.
  */
 export function composeEnrichedMessage(
   userText: string,
   matched: WorldInfoEntry[],
   driftReminder: string | undefined,
-  locale: Locale
+  locale: Locale,
+  charName: string,
+  userName: string | undefined
 ): string {
+  const ctx = buildMacroContext(charName, userName, locale)
   const blocks: string[] = []
 
   for (const entry of [...matched].sort(byDepthThenOrder)) {
-    blocks.push(`${loreLabel(entry.role, locale)} ${entry.content.trim()}`)
+    blocks.push(`${loreLabel(entry.role, locale)} ${expandMacros(entry.content.trim(), ctx)}`)
   }
 
   if (driftReminder?.trim()) {
-    blocks.push(`🎭 ${driftReminder.trim()}`)
+    // Plain concatenation, not a template literal: the production build
+    // (Parcel's JS transformer) truncates a raw astral emoji to its lone high
+    // surrogate whenever it sits directly before a template literal's `${`
+    // (confirmed in the built bundle — verified during pc-test real-machine
+    // checks, 2026-07-27); `+` avoids that byte-corrupted "🎭" the same
+    // trigger shape had produced in the guard button and PersonaList section
+    // headers.
+    blocks.push("🎭 " + expandMacros(driftReminder.trim(), ctx))
   }
 
   if (blocks.length === 0) return userText

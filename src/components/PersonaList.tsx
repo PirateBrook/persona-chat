@@ -203,9 +203,14 @@ export const PersonaList: FC<Props> = ({
           visible.map(renderRow)
         ) : (
           <>
-            {groups.pinned.length > 0 && sectionHeader(`📌 ${t("list.pinned")}`)}
+            {/* Plain concatenation, not a template literal: the production
+                build truncates a raw astral emoji to a lone high surrogate
+                whenever it sits directly before a template literal's `${`
+                (confirmed in the built bundle during pc-test real-machine
+                checks, 2026-07-27) — `+` avoids it. */}
+            {groups.pinned.length > 0 && sectionHeader("📌 " + t("list.pinned"))}
             {groups.pinned.map(renderRow)}
-            {groups.recent.length > 0 && sectionHeader(`🕒 ${t("list.recent")}`)}
+            {groups.recent.length > 0 && sectionHeader("🕒 " + t("list.recent"))}
             {groups.recent.map(renderRow)}
             {(groups.pinned.length > 0 || groups.recent.length > 0) &&
               groups.rest.length > 0 &&
