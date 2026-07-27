@@ -30,7 +30,8 @@
   "manifest": {
     "host_permissions": [
       "https://chat.deepseek.com/*",
-      "https://claude.ai/*"
+      "https://claude.ai/*",
+      "https://chatgpt.com/*"
     ],
     "permissions": [
       "storage",

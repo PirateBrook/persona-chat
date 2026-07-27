@@ -1,3 +1,4 @@
+import { chatgptAdapter } from "./chatgpt"
 import { claudeAdapter } from "./claude"
 import { deepseekAdapter } from "./deepseek"
 import type { PlatformAdapter } from "./types"
@@ -11,7 +12,8 @@ export type { InjectMethod, InjectResult, PlatformAdapter } from "./types"
  */
 const REGISTRY: Record<string, PlatformAdapter> = {
   "chat.deepseek.com": deepseekAdapter,
-  "claude.ai": claudeAdapter
+  "claude.ai": claudeAdapter,
+  "chatgpt.com": chatgptAdapter
 }
 
 export function getActiveAdapter(
