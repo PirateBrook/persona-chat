@@ -56,7 +56,18 @@ export function expandSeed(seed: SeedPersona, locale: Locale, now: number): Pers
   return {
     id: seed.id,
     avatarEmoji: seed.avatarEmoji,
-    backgroundId: seed.backgroundId,
+    // Only assign the key when the seed actually has one — `backgroundId:
+    // seed.backgroundId` would set the key to a literal `undefined` for the
+    // handful of seeds without one, and chrome.storage.local (JSON-like
+    // serialization) silently drops undefined-valued keys on write. That
+    // made ensureSeeds' isSameCard (key-count-sensitive) see a permanent
+    // mismatch between the freshly expanded candidate (key present) and
+    // whatever came back from storage (key absent) — an infinite write loop
+    // that re-triggered itself via every subsequent `personas` storage
+    // event, refreshing this persona's `updatedAt` and bumping it to the
+    // top of its list section on every tick (the "list flickers while
+    // scrolling" bug — not caused by pinning, just first noticed there).
+    ...(seed.backgroundId !== undefined ? { backgroundId: seed.backgroundId } : {}),
     tags: seed.tags,
     seedLocale: locale,
     createdAt: now,
