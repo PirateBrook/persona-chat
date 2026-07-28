@@ -5,6 +5,11 @@ in `docs/store-assets/` — real captures via browser-cdp against a live
 chat.deepseek.com session, 1280×800 (CWS's required screenshot size), not
 mockups.
 
+> **Copy-paste warning**: the `>` blockquote markers below are markdown
+> formatting only, to visually set the pasteable text apart from commentary —
+> they are NOT part of the actual listing copy. Strip them before pasting
+> into the Dashboard (or ask the assistant for a clean plain-text version).
+
 ## Category
 
 **Fun** (formerly "Just for Fun"). The core hook is roleplay/companion chat,

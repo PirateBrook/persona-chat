@@ -4,6 +4,14 @@
 
 （下一次提交前，新的改动记在这里）
 
+## [0.3.0] - 2026-07-28
+
+### 商店列表国际化基础设施
+- 扩展包补上标准 `chrome.i18n` 国际化：新增 `locales/en/messages.json`、`locales/zh_CN/messages.json`（`extensionName`/`extensionDescription` 两个 key），`package.json` 顶层 `displayName`/`description` 改用 `__MSG_extensionName__`/`__MSG_extensionDescription__` 占位符，`manifest.default_locale` 设为 `en`
+- 动机：Chrome Web Store Developer Dashboard 的商店列表语言下拉框此前锁死在单一语言——根因是扩展包从未做过 manifest 级别的 i18n（无 `_locales` 目录），Dashboard 检测不到多语言支持。补上这层之后才能在 Dashboard 里为中文单独填一份独立的详细描述/截图
+- 与应用内 UI 现有的 `src/lib/i18n/{en,zh}.ts` + `useI18n()` 纯 TS 字典机制完全独立，互不影响；这次改动只影响 `chrome://extensions` 显示的扩展名/描述和 CWS 商店列表的语言解锁，不改任何应用内文案
+- 实测确认 Plasmo 0.90.5 无需额外的 `manifest.name` 覆盖字段——仅改 `displayName`/`description`/`default_locale` 三处，构建产物 `manifest.json` 里 `name`/`description` 就已正确保留字面量 `__MSG_*__` 占位符（Chrome 运行时解析，非构建时替换）
+
 ## [0.2.0] - 2026-07-28
 
 ### 平台扩展
