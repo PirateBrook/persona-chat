@@ -99,8 +99,9 @@ export const PersonaPanel: FC<Props> = ({ onClose }) => {
     // about it until the next full remount (closing the panel or reloading
     // the page), which reads as "the import silently did nothing."
     return subscribeStorageChanged((changes, area) => {
-      if (area !== "local" || !changes.personas) return
-      void ensureSeeds(locale).then(setPersonas)
+      if (area !== "local") return
+      if (changes.personas) void ensureSeeds(locale).then(setPersonas)
+      if (changes.appState) setState(changes.appState.newValue as AppState)
     })
   }, [locale])
 
