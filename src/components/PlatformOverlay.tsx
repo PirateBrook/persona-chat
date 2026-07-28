@@ -127,7 +127,15 @@ export function PlatformOverlay({
     // directly before a template literal's `${` (confirmed in the built
     // bundle during pc-test real-machine checks, 2026-07-27) — `+` avoids it.
     const composed = draft ? "🎭 " + reminder + "\n\n" + draft : "🎭 " + reminder
-    await adapter.injectText(composed)
+    const result = await adapter.injectText(composed)
+    if (result.ok && result.method === "dom-injection") {
+      setPillToast(t("toast.ready"))
+    } else if (result.ok && result.method === "clipboard-fallback") {
+      setPillToast(t("toast.clipboard"))
+    } else {
+      setPillToast(t("toast.injectFailed"))
+    }
+    setTimeout(() => setPillToast(null), 3000)
   }
 
   const canEnrich =

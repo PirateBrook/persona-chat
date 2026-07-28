@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 
 import "./style.css"
 
@@ -12,6 +12,8 @@ import {
 import { useI18n, type MessageKey } from "~lib/i18n"
 import { translateTag } from "~lib/i18n/tags"
 import { resizeImageFile } from "~lib/image-resize"
+import { collectPersonaTagCounts, filterPersonas } from "~lib/persona-filter"
+import { subscribeStorageChanged } from "~lib/storage-events"
 import { INPUT_BASE_CLS } from "~lib/styles"
 import { ensureSeeds } from "~seed"
 import {
@@ -57,32 +59,18 @@ export default function Options() {
   const [appState, setAppStateLocal] = useState<AppState | null>(null)
   const [query, setQuery] = useState("")
   const [tagFilter, setTagFilter] = useState<string | null>(null)
+  const [userNameDraft, setUserNameDraft] = useState<string | null>(null)
+  const userNameSaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
 
   // 100+ built-in personas make a flat, unfiltered list unscannable — mirrors
   // the search/tag-chip filtering already proven out in PersonaList.tsx (the
   // content-script panel), applied here to the editor's own list column.
-  const allTags = useMemo(() => {
-    const counts = new Map<string, number>()
-    for (const p of personas) {
-      for (const tag of p.tags ?? []) counts.set(tag, (counts.get(tag) ?? 0) + 1)
-    }
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([tag]) => tag)
-  }, [personas])
+  const allTags = useMemo(() => collectPersonaTagCounts(personas), [personas])
 
-  const visiblePersonas = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return personas.filter((p) => {
-      if (tagFilter && !(p.tags ?? []).includes(tagFilter)) return false
-      if (!q) return true
-      return (
-        p.name.toLowerCase().includes(q) ||
-        p.personaPrompt.toLowerCase().includes(q) ||
-        (p.tags ?? []).some((tag) => tag.toLowerCase().includes(q))
-      )
-    })
-  }, [personas, query, tagFilter])
+  const visiblePersonas = useMemo(
+    () => filterPersonas(personas, query, tagFilter),
+    [personas, query, tagFilter]
+  )
 
   useEffect(() => {
     // Installs missing seeds and refreshes non-customized ones to the
@@ -94,11 +82,28 @@ export default function Options() {
 
   useEffect(() => {
     void getAppState().then(setAppStateLocal)
+    return subscribeStorageChanged((changes, area) => {
+      if (area !== "local" || !changes.appState) return
+      setAppStateLocal(changes.appState.newValue as AppState)
+    })
   }, [])
 
-  async function handleUserNameChange(value: string) {
-    const next = await setAppState({ userName: value })
-    setAppStateLocal(next)
+  function handleUserNameChange(value: string) {
+    // Local draft + debounce, unlike the other fields in this file (which
+    // keep `editing` state and only persist on explicit Save): this is the
+    // only field that persists on every keystroke, and overlapping
+    // chrome.storage read-modify-write round-trips can resolve out of order,
+    // letting a fast typist see the input revert to an earlier, shorter
+    // value that then gets persisted. Debouncing to only the LAST value in a
+    // burst avoids that race.
+    setUserNameDraft(value)
+    if (userNameSaveTimer.current) clearTimeout(userNameSaveTimer.current)
+    userNameSaveTimer.current = setTimeout(() => {
+      void setAppState({ userName: value }).then((next) => {
+        setAppStateLocal(next)
+        setUserNameDraft(null)
+      })
+    }, 400)
   }
 
   async function refresh() {
@@ -397,8 +402,8 @@ export default function Options() {
           </label>
           <input
             id="user-name-input"
-            value={appState?.userName ?? ""}
-            onChange={(e) => void handleUserNameChange(e.target.value)}
+            value={userNameDraft ?? appState?.userName ?? ""}
+            onChange={(e) => handleUserNameChange(e.target.value)}
             placeholder={t("options.userNamePlaceholder")}
             className={`w-56 ${INPUT_CLS_SMALL}`}
           />
@@ -473,6 +478,14 @@ export default function Options() {
                         <div className="min-w-0 flex-1">
                           <div className="flex items-center gap-1.5">
                             <span className="truncate text-sm font-semibold">{p.name}</span>
+                            {(p.worldInfo?.length ?? 0) > 0 && (
+                              <span
+                                className="text-[11px] opacity-60"
+                                title={tp("list.worldInfoTitle", p.worldInfo!.length)}
+                              >
+                                📖
+                              </span>
+                            )}
                             {isActive && (
                               <span className="shrink-0 rounded-full bg-persona-600 px-1.5 py-0.5 text-[10px] font-medium text-white">
                                 {t("common.active")}
@@ -483,11 +496,11 @@ export default function Options() {
                             {p.personaPrompt}
                           </div>
                         </div>
-                        <span className="ml-auto hidden shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium text-persona-600 opacity-0 transition group-hover:opacity-100 dark:text-persona-300 sm:block">
+                        <span className="ml-auto hidden shrink-0 rounded-full px-2 py-0.5 text-[11px] font-medium text-persona-600 opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100 dark:text-persona-300 sm:block">
                           {t("common.edit")}
                         </span>
                       </button>
-                      <div className="flex shrink-0 items-center gap-0.5 pr-2 opacity-0 transition group-hover:opacity-100">
+                      <div className="flex shrink-0 items-center gap-0.5 pr-2 opacity-0 transition group-focus-within:opacity-100 group-hover:opacity-100">
                         <button
                           onClick={() => duplicatePersona(p)}
                           className="rounded px-2 py-1 text-xs text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"

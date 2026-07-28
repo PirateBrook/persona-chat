@@ -2,6 +2,7 @@ import { useMemo, useState, type FC } from "react"
 
 import { useI18n } from "../lib/i18n"
 import { translateTag } from "../lib/i18n/tags"
+import { collectPersonaTagCounts, filterPersonas } from "../lib/persona-filter"
 import { INPUT_BASE_CLS } from "../lib/styles"
 import type { PersonaCard } from "../types"
 
@@ -26,31 +27,15 @@ export const PersonaList: FC<Props> = ({
   const { t, tp, locale } = useI18n()
   const [query, setQuery] = useState("")
 
-  const allTags = useMemo(() => {
-    const counts = new Map<string, number>()
-    for (const p of personas) {
-      for (const tag of p.tags ?? []) counts.set(tag, (counts.get(tag) ?? 0) + 1)
-    }
-    // Most-used tags first so the chip row stays scannable as the library grows.
-    return Array.from(counts.entries())
-      .sort((a, b) => b[1] - a[1])
-      .map(([tag]) => tag)
-  }, [personas])
+  // Most-used tags first so the chip row stays scannable as the library grows.
+  const allTags = useMemo(() => collectPersonaTagCounts(personas), [personas])
 
   // `personas` arrives already sorted (comparePersonas: pinned → recent →
   // updated), so filtering preserves that order.
-  const visible = useMemo(() => {
-    const q = query.trim().toLowerCase()
-    return personas.filter((p) => {
-      if (tagFilter && !(p.tags ?? []).includes(tagFilter)) return false
-      if (!q) return true
-      return (
-        p.name.toLowerCase().includes(q) ||
-        p.personaPrompt.toLowerCase().includes(q) ||
-        (p.tags ?? []).some((tag) => tag.toLowerCase().includes(q))
-      )
-    })
-  }, [personas, query, tagFilter])
+  const visible = useMemo(
+    () => filterPersonas(personas, query, tagFilter),
+    [personas, query, tagFilter]
+  )
 
   // Section grouping only makes sense while browsing; when searching, show a
   // single flat ranked list.
