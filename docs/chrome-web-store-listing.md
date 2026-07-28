@@ -28,7 +28,7 @@ chat history" was the reviewer's first unspoken worry, and it shouldn't wait
 until paragraph 6 to get answered.
 
 **English:**
-> Give DeepSeek, Claude, or ChatGPT a roleplay persona — a bar owner, a talking cat & more. 100% free, no chat data uploaded, no API key.
+> Give DeepSeek, Claude, or ChatGPT a roleplay persona — a bar owner, a talking cat & more. Free, no chat data uploaded, no API key.
 
 **中文:**
 > 给 DeepSeek、Claude 或 ChatGPT 装上「深夜小酒馆的老板」「不讲逻辑的猫」等角色扮演人设——完全免费、不上传聊天记录、无需 API Key。
