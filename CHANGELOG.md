@@ -2,6 +2,10 @@
 
 ## [未发布]
 
+（下一次提交前，新的改动记在这里）
+
+## [0.2.0] - 2026-07-28
+
 ### 平台扩展
 - ChatGPT 成为第三个支持平台：人设/世界书/背景全套功能通过新的 `PlatformAdapter` 同时运行在 chatgpt.com 上，零 LLM 成本，与 DeepSeek/Claude.ai 一样是"读草稿→写回→人工按发送"的可见注入机制；manifest 只多了一个 `host_permissions`，无新增 API 权限
 
