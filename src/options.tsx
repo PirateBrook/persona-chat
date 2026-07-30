@@ -12,6 +12,7 @@ import {
 import { useI18n, type MessageKey } from "~lib/i18n"
 import { translateTag } from "~lib/i18n/tags"
 import { resizeImageFile } from "~lib/image-resize"
+import { estimateMemoryUsage, MEMORY_CHAR_BUDGET } from "~lib/memory"
 import { collectPersonaTagCounts, filterPersonas } from "~lib/persona-filter"
 import { subscribeStorageChanged } from "~lib/storage-events"
 import { INPUT_BASE_CLS } from "~lib/styles"
@@ -70,6 +71,15 @@ export default function Options() {
   const visiblePersonas = useMemo(
     () => filterPersonas(personas, query, tagFilter),
     [personas, query, tagFilter]
+  )
+
+  // Saved-memory footprint of the persona being edited — surfaced as an
+  // advisory usage line above the world-info list (memory entries are
+  // alwaysActive, so they all re-inject every Enrich; unbounded growth slows
+  // storage and dilutes context). Display + warning only; never auto-deleted.
+  const memoryUsage = useMemo(
+    () => (editing ? estimateMemoryUsage(editing) : { count: 0, chars: 0 }),
+    [editing]
   )
 
   useEffect(() => {
@@ -689,6 +699,24 @@ export default function Options() {
                       {t("options.addEntry")}
                     </button>
                   </div>
+                  {memoryUsage.count > 0 && (
+                    <div className="mb-1.5">
+                      <span
+                        className={
+                          memoryUsage.chars > MEMORY_CHAR_BUDGET
+                            ? "text-[11px] font-medium text-amber-600 dark:text-amber-400"
+                            : "text-[11px] text-gray-400 dark:text-gray-500"
+                        }
+                      >
+                        {t("memory.usage", memoryUsage)}
+                      </span>
+                      {memoryUsage.chars > MEMORY_CHAR_BUDGET && (
+                        <p className="mt-0.5 text-[11px] text-amber-600 dark:text-amber-400">
+                          {t("memory.usageWarn")}
+                        </p>
+                      )}
+                    </div>
+                  )}
                   <div className="space-y-2">
                     {(editing.worldInfo ?? []).map((entry) => (
                       <div

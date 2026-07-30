@@ -96,6 +96,14 @@ export function PlatformOverlay({
     setActivePersona(await getPersona(state.activePersonaId))
   }
 
+  /** Shows a transient pill toast (auto-clears after 3s). Shared by every
+   *  floating action — Enrich, Guard, and the memory card's inject feedback —
+   *  so they read identically. */
+  function showPillToast(msg: string) {
+    setPillToast(msg)
+    setTimeout(() => setPillToast(null), 3000)
+  }
+
   function handleSpeak() {
     const replies = document.querySelectorAll(assistantReplySelector)
     const last = replies[replies.length - 1]
@@ -105,8 +113,7 @@ export function PlatformOverlay({
 
   async function handleEnrich() {
     const outcome = await enrich()
-    setPillToast(describeEnrichOutcome(outcome, locale))
-    setTimeout(() => setPillToast(null), 3000)
+    showPillToast(describeEnrichOutcome(outcome, locale))
   }
 
   /**
@@ -129,13 +136,12 @@ export function PlatformOverlay({
     const composed = draft ? "🎭 " + reminder + "\n\n" + draft : "🎭 " + reminder
     const result = await adapter.injectText(composed)
     if (result.ok && result.method === "dom-injection") {
-      setPillToast(t("toast.ready"))
+      showPillToast(t("toast.ready"))
     } else if (result.ok && result.method === "clipboard-fallback") {
-      setPillToast(t("toast.clipboard"))
+      showPillToast(t("toast.clipboard"))
     } else {
-      setPillToast(t("toast.injectFailed"))
+      showPillToast(t("toast.injectFailed"))
     }
-    setTimeout(() => setPillToast(null), 3000)
   }
 
   const canEnrich =
@@ -149,36 +155,54 @@ export function PlatformOverlay({
         onClick={() => setOpen((v) => !v)}
       />
 
-      {canEnrich && !open && (
-        <button
-          onClick={handleEnrich}
-          className="fixed bottom-[4.6rem] right-6 z-[999999] flex h-9 items-center gap-1.5 rounded-full border border-gray-200/80 bg-white/95 px-3.5 text-[12px] font-medium text-gray-700 shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200"
-        >
-          <span aria-hidden>✨</span> {t("pill.enrich")}
-        </button>
-      )}
+      {/* One flex rail instead of individually `right-{6,36,56}`-positioned
+          pills. The old hardcoded offsets were tuned for one locale's label
+          widths and collided in the other (zh "反串扮守卫" is far wider than en
+          "Guard", so Guard and Memory both landed on right-56) — flexbox spaces
+          them locale-robustly. flex-row-reverse keeps Enrich rightmost, nearest
+          the FloatingButton. MemoryNotePrompt's collapsed pill is a flex child;
+          its expanded card is `fixed` (viewport-relative, no transformed
+          ancestor here) and overlays the rail like it always has. */}
+      {!open && (
+        <div className="fixed bottom-[4.6rem] right-6 z-[999999] flex flex-row-reverse items-center gap-2">
+          {canEnrich && (
+            <button
+              onClick={handleEnrich}
+              className="flex h-9 items-center gap-1.5 rounded-full border border-gray-200/80 bg-white/95 px-3.5 text-[12px] font-medium text-gray-700 shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200"
+            >
+              <span aria-hidden>✨</span> {t("pill.enrich")}
+            </button>
+          )}
 
-      {!!activePersona && !open && (
-        <button
-          onClick={() => void handleGuard()}
-          className="fixed bottom-[4.6rem] right-56 z-[999999] flex h-9 items-center gap-1.5 rounded-full border border-gray-200/80 bg-white/95 px-3.5 text-[12px] font-medium text-gray-700 shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200"
-        >
-          <span aria-hidden>🎭</span> {t("guard.button")}
-        </button>
-      )}
+          {tts.enabled && hasAssistantReply && (
+            <button
+              onClick={handleSpeak}
+              aria-label={t("tts.play")}
+              title={t("tts.play")}
+              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200/80 bg-white/95 text-sm shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95"
+            >
+              <span aria-hidden>🔊</span>
+            </button>
+          )}
 
-      {tts.enabled && hasAssistantReply && !open && (
-        <button
-          onClick={handleSpeak}
-          aria-label={t("tts.play")}
-          title={t("tts.play")}
-          className="fixed bottom-[4.6rem] right-36 z-[999999] flex h-9 w-9 items-center justify-center rounded-full border border-gray-200/80 bg-white/95 text-sm shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95"
-        >
-          <span aria-hidden>🔊</span>
-        </button>
-      )}
+          {!!activePersona && (
+            <button
+              onClick={() => void handleGuard()}
+              className="flex h-9 items-center gap-1.5 rounded-full border border-gray-200/80 bg-white/95 px-3.5 text-[12px] font-medium text-gray-700 shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200"
+            >
+              <span aria-hidden>🎭</span> {t("guard.button")}
+            </button>
+          )}
 
-      {!!activePersona && !open && <MemoryNotePrompt persona={activePersona} />}
+          {!!activePersona && (
+            <MemoryNotePrompt
+              persona={activePersona}
+              assistantReplySelector={assistantReplySelector}
+              onToast={showPillToast}
+            />
+          )}
+        </div>
+      )}
 
       {pillToast && (
         <div className="fixed bottom-[7.2rem] right-6 z-[999999] max-w-xs animate-fade-up rounded-xl bg-gray-900/95 px-3.5 py-2.5 text-xs font-medium text-white shadow-lg backdrop-blur dark:bg-white/95 dark:text-gray-900">

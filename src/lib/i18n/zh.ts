@@ -50,6 +50,7 @@ export const zh: Messages = {
   "toast.ready": "角色已就绪——按回车发送。",
   "toast.clipboard": "已复制到剪贴板——粘贴到对话框即可激活。",
   "toast.injectFailed": "找不到对话输入框，试试刷新页面。",
+  "toast.summaryInjected": "总结提示已加入——按 Enter 让 AI 给你概括。",
 
   // ---- ModeTabs.tsx ----
   "tab.personas": "角色",
@@ -177,6 +178,14 @@ export const zh: Messages = {
   "memory.saved": "已保存",
   "memory.badge": "📌 记忆",
   "memory.badgeHint": "在对话中随手记下的，不是手写设定",
+  "memory.summarize": "🧠 让 AI 总结",
+  "memory.summarizeHint": "让当前这次对话把目前的剧情概括一下——再把它的回复拉进记忆。",
+  "memory.pullReply": "📥 用上一条回复",
+  "memory.pullReplyEmpty": "还没有可拉取的回复——先发一条消息。",
+  "memory.summaryPrompt":
+    "在我们继续之前，请把目前为止的故事概括成 {count} 条简短要点，方便我保存为长期记忆。请涵盖：关于角色的关键既定设定、我们之间的关系与相处方式、以及重要的剧情进展或约定。每条尽量简短、只陈述设定本身——不要逐幕复述剧情。",
+  "memory.usage": "记忆用量：{count} 条 · 约 {chars} 字",
+  "memory.usageWarn": "记忆偏多了——可能拖慢保存或稀释对话上下文，考虑合并或删掉旧的记忆。",
 
   // ---- tts ----
   "tts.enable": "朗读回复",

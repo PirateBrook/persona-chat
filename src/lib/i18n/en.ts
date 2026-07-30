@@ -54,6 +54,7 @@ export const en = {
   "toast.ready": "Persona ready — press Enter to send.",
   "toast.clipboard": "Copied to clipboard — paste into the chat to activate.",
   "toast.injectFailed": "Couldn't reach the chat input. Try refreshing the page.",
+  "toast.summaryInjected": "Summary prompt added — press Enter to get your recap.",
 
   // ---- ModeTabs.tsx ----
   "tab.personas": "Personas",
@@ -184,6 +185,16 @@ export const en = {
   "memory.saved": "Saved",
   "memory.badge": "📌 Memory",
   "memory.badgeHint": "Captured during a chat, not hand-authored",
+  "memory.summarize": "🧠 Summarize with AI",
+  "memory.summarizeHint":
+    "Ask the current chat to recap the story so far — then pull its reply into a memory.",
+  "memory.pullReply": "📥 Use last reply",
+  "memory.pullReplyEmpty": "No reply to pull yet — send a message first.",
+  "memory.summaryPrompt":
+    "Before we go on, please recap our story so far as {count} short bullet points I can save as lasting memory. Cover the key established facts about the characters, our relationship and how we interact, and any important plot developments or promises made. Keep each point brief and factual — the setting itself, not a scene-by-scene retelling.",
+  "memory.usage": "Saved memory: {count} · ~{chars} chars",
+  "memory.usageWarn":
+    "That's a lot of memory — it may slow saving or dilute the chat. Consider merging or deleting older notes.",
 
   // ---- tts ----
   "tts.enable": "Read replies aloud",
