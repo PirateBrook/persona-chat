@@ -406,17 +406,38 @@ export default function Options() {
           </div>
         </header>
 
-        <section className="mb-6 inline-flex w-fit shrink-0 items-center gap-2.5 self-start rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
-          <label className="whitespace-nowrap text-xs font-medium text-gray-600 dark:text-gray-400" htmlFor="user-name-input">
-            {t("options.userName")}
-          </label>
-          <input
-            id="user-name-input"
-            value={userNameDraft ?? appState?.userName ?? ""}
-            onChange={(e) => handleUserNameChange(e.target.value)}
-            placeholder={t("options.userNamePlaceholder")}
-            className={`w-56 ${INPUT_CLS_SMALL}`}
-          />
+        <details
+          open
+          className="mb-6 rounded-xl border border-gray-200 bg-white px-4 py-3 shadow-sm dark:border-gray-800 dark:bg-gray-900"
+        >
+          <summary className="cursor-pointer select-none text-xs font-semibold uppercase tracking-wider text-gray-500">
+            {t("help.heading")}
+          </summary>
+          <div className="mt-3 space-y-2 text-xs leading-relaxed text-gray-600 dark:text-gray-300">
+            <p>{t("help.intro")}</p>
+            <ul className="space-y-1.5">
+              <li>{t("help.enrich")}</li>
+              <li>{t("help.guard")}</li>
+              <li>{t("help.memory")}</li>
+            </ul>
+            <p className="text-gray-500 dark:text-gray-400">{t("help.flow")}</p>
+          </div>
+        </details>
+
+        <section className="mb-6 inline-flex w-fit shrink-0 flex-col items-start gap-1.5 self-start rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
+          <div className="flex items-center gap-2.5">
+            <label className="whitespace-nowrap text-xs font-medium text-gray-600 dark:text-gray-400" htmlFor="user-name-input">
+              {t("options.userName")}
+            </label>
+            <input
+              id="user-name-input"
+              value={userNameDraft ?? appState?.userName ?? ""}
+              onChange={(e) => handleUserNameChange(e.target.value)}
+              placeholder={t("options.userNamePlaceholder")}
+              className={`w-56 ${INPUT_CLS_SMALL}`}
+            />
+          </div>
+          <p className="text-[11px] text-gray-400 dark:text-gray-500">{t("options.userNameHint")}</p>
         </section>
 
         <div className="grid min-h-0 flex-1 grid-cols-1 gap-6 md:grid-cols-2">

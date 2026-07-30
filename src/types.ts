@@ -150,6 +150,11 @@ export interface AppState {
    *  locale-aware default noun ("User"/"用户") at expansion time, so macro
    *  expansion works correctly with zero configuration. */
   userName?: string
+  /** Whether the user has dismissed the one-time overlay coach-mark that
+   *  explains the "type → tap ✨ → press Enter yourself" flow. Unset/false =
+   *  the hint shows the first time a persona is active with the panel closed;
+   *  once dismissed it never returns. Read-site default (no migration). */
+  hasSeenOverlayHint?: boolean
 }
 
 export const DEFAULT_APP_STATE: AppState = {

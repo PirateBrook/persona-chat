@@ -24,6 +24,14 @@ export const zh: Messages = {
   "guard.button": "反串扮",
   "guard.reminder": "不要替 {{user}} 编写台词、动作或内心想法。只以 {{char}} 的身份说话和行动。",
 
+  // ---- overlay icon-button tooltips + first-run coach-mark ----
+  "tooltip.enrich": "增强 —— 把角色设定和已存记忆织进你的草稿",
+  "tooltip.guard": "守卫 —— 提醒 AI 不要替你说话或行动",
+  "tooltip.memory": "记忆 —— 记下一条设定，或让 AI 概括目前剧情",
+  "hint.title": "先打字，再点 ✨",
+  "hint.body": "在对话框里写好消息，点 ✨ 把角色和记忆织进去，再自己按 Enter —— 插件不会自动发送。",
+  "hint.dismiss": "知道了",
+
   // ---- lib/macros.ts ----
   "macro.user.default": "用户",
 
@@ -130,8 +138,18 @@ export const zh: Messages = {
   "select.none": "无",
   "options.backgroundOption": "{label}（{category}）",
   "options.language": "语言",
-  "options.userName": "你的名字（用于 {{user}}）",
+  "options.userName": "你的名字",
+  "options.userNameHint": "角色在故事里会这样称呼你。",
   "options.userNamePlaceholder": "用户（默认）",
+  // ---- options: how it works ----
+  "help.heading": "使用说明",
+  "help.intro":
+    "Persona 把免费网页版对话（DeepSeek / Claude / ChatGPT）变成一个角色。它从不替你发送消息——只把内容写进对话框，由你按 Enter。",
+  "help.enrich": "✨ 增强 —— 发送前，把角色的世界设定和你存的记忆织进草稿。",
+  "help.guard": "🎭 守卫 —— 插入一句提醒，让 AI 别再替你写台词或动作。",
+  "help.memory":
+    "📌 记忆 —— 记下一条要记住的设定，或让 AI 概括目前剧情并固定下来。固定的记忆每次「增强」都会带回。",
+  "help.flow": "应用一个角色 → 在对话框打字 → 点一个按钮 → 按 Enter。",
   "lang.auto": "跟随浏览器",
   "lang.en": "English",
   "lang.zh": "中文",

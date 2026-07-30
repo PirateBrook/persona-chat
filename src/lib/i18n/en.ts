@@ -28,6 +28,15 @@ export const en = {
   "guard.reminder":
     "Do not write dialogue, actions, or thoughts for {{user}}. Only speak and act as {{char}}.",
 
+  // ---- overlay icon-button tooltips + first-run coach-mark ----
+  "tooltip.enrich": "Enrich — weave the character & saved memory into your draft",
+  "tooltip.guard": "Guard — remind the AI not to speak or act as you",
+  "tooltip.memory": "Memory — save a fact, or have the AI recap the story so far",
+  "hint.title": "Type, then tap ✨",
+  "hint.body":
+    "Write your message in the chat box, tap ✨ to weave in the character and memory, then press Enter yourself — nothing sends automatically.",
+  "hint.dismiss": "Got it",
+
   // ---- lib/macros.ts ----
   "macro.user.default": "User",
 
@@ -137,8 +146,20 @@ export const en = {
   "select.none": "None",
   "options.backgroundOption": "{label} ({category})",
   "options.language": "Language",
-  "options.userName": "Your name (for {{user}})",
+  "options.userName": "Your name",
+  "options.userNameHint": "How characters address you in the story.",
   "options.userNamePlaceholder": "User (default)",
+  // ---- options: how it works ----
+  "help.heading": "How it works",
+  "help.intro":
+    "Persona turns a free web chat (DeepSeek, Claude, or ChatGPT) into a character. It never sends messages for you — it writes into the chat box and you press Enter.",
+  "help.enrich":
+    "✨ Enrich — before you send, weaves the character's world info and your saved memory into your draft.",
+  "help.guard":
+    "🎭 Guard — drops in a reminder so the AI stops writing lines or actions for you.",
+  "help.memory":
+    "📌 Memory — save a fact to remember, or have the AI recap the story so far and pin it. Pinned memory comes back on every Enrich.",
+  "help.flow": "Apply a persona → type in the chat box → tap a button → press Enter.",
   "lang.auto": "Auto (browser)",
   "lang.en": "English",
   "lang.zh": "中文",

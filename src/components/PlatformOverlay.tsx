@@ -11,7 +11,7 @@ import { applyPageTweaks } from "~lib/page-tweaks"
 import { subscribeStorageChanged } from "~lib/storage-events"
 import { speak } from "~lib/tts"
 import { describeEnrichOutcome, usePersonaEnrich } from "~lib/use-persona-enrich"
-import { getAppState, getPersona } from "~storage"
+import { getAppState, getPersona, setAppState } from "~storage"
 import { DEFAULT_APP_STATE, type PersonaCard, type TtsPreference } from "~types"
 
 /**
@@ -30,6 +30,11 @@ import { DEFAULT_APP_STATE, type PersonaCard, type TtsPreference } from "~types"
  * thin per-site content scripts (contents/deepseek.tsx, contents/claude.tsx)
  * pass their own selector and declare their own config / shadow-host id.
  */
+/** Shared look for the overlay's icon-only action buttons (Enrich / Guard /
+ *  Memory / TTS) — a 36px circular pill matching the FloatingButton's language. */
+const ICON_BTN_CLS =
+  "flex h-9 w-9 items-center justify-center rounded-full border border-gray-200/80 bg-white/95 text-sm shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95"
+
 export function PlatformOverlay({
   assistantReplySelector
 }: {
@@ -42,6 +47,7 @@ export function PlatformOverlay({
   const [tts, setTts] = useState<TtsPreference>(DEFAULT_APP_STATE.tts)
   const [hasAssistantReply, setHasAssistantReply] = useState(false)
   const [userName, setUserName] = useState<string | undefined>(undefined)
+  const [seenHint, setSeenHint] = useState(true)
   const { enrich } = usePersonaEnrich(activePersona, locale, userName)
 
   useEffect(() => {
@@ -88,12 +94,21 @@ export function PlatformOverlay({
     applyPageTweaks(state.pageTweaks)
     setTts(state.tts ?? DEFAULT_APP_STATE.tts)
     setUserName(state.userName)
+    setSeenHint(!!state.hasSeenOverlayHint)
 
     if (!state.activePersonaId) {
       setActivePersona(null)
       return
     }
     setActivePersona(await getPersona(state.activePersonaId))
+  }
+
+  /** Permanently dismisses the one-time overlay coach-mark. Optimistic local
+   *  update so it disappears instantly; the storage write is fire-and-forget
+   *  (the storage-change subscription would reconcile it anyway). */
+  function dismissHint() {
+    setSeenHint(true)
+    void setAppState({ hasSeenOverlayHint: true })
   }
 
   /** Shows a transient pill toast (auto-clears after 3s). Shared by every
@@ -155,42 +170,36 @@ export function PlatformOverlay({
         onClick={() => setOpen((v) => !v)}
       />
 
-      {/* One flex rail instead of individually `right-{6,36,56}`-positioned
-          pills. The old hardcoded offsets were tuned for one locale's label
-          widths and collided in the other (zh "反串扮守卫" is far wider than en
-          "Guard", so Guard and Memory both landed on right-56) — flexbox spaces
-          them locale-robustly. flex-row-reverse keeps Enrich rightmost, nearest
-          the FloatingButton. MemoryNotePrompt's collapsed pill is a flex child;
-          its expanded card is `fixed` (viewport-relative, no transformed
-          ancestor here) and overlays the rail like it always has. */}
+      {/* Vertical icon stack anchored above the FloatingButton, occupying only
+          the far-right column (w-12, same as the FAB, so items-center lines the
+          icons up with it) — it never reaches leftward into the page's own
+          centered chat box / send controls the way the old labeled horizontal
+          rail did. Icon-only with hover tooltips; discoverability is carried by
+          the tooltips, the first-run coach-mark below, and the options "How it
+          works" section. flex-col-reverse puts Enrich (the primary action) at
+          the bottom, nearest the FAB. MemoryNotePrompt's collapsed pill is one
+          more stack item; its expanded card is `fixed` and overlays as before. */}
       {!open && (
-        <div className="fixed bottom-[4.6rem] right-6 z-[999999] flex flex-row-reverse items-center gap-2">
+        <div className="fixed bottom-[4.6rem] right-6 z-[999999] flex w-12 flex-col-reverse items-center gap-2">
           {canEnrich && (
             <button
               onClick={handleEnrich}
-              className="flex h-9 items-center gap-1.5 rounded-full border border-gray-200/80 bg-white/95 px-3.5 text-[12px] font-medium text-gray-700 shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200"
+              aria-label={t("pill.enrich")}
+              title={t("tooltip.enrich")}
+              className={ICON_BTN_CLS}
             >
-              <span aria-hidden>✨</span> {t("pill.enrich")}
-            </button>
-          )}
-
-          {tts.enabled && hasAssistantReply && (
-            <button
-              onClick={handleSpeak}
-              aria-label={t("tts.play")}
-              title={t("tts.play")}
-              className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200/80 bg-white/95 text-sm shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95"
-            >
-              <span aria-hidden>🔊</span>
+              <span aria-hidden>✨</span>
             </button>
           )}
 
           {!!activePersona && (
             <button
               onClick={() => void handleGuard()}
-              className="flex h-9 items-center gap-1.5 rounded-full border border-gray-200/80 bg-white/95 px-3.5 text-[12px] font-medium text-gray-700 shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200"
+              aria-label={t("guard.button")}
+              title={t("tooltip.guard")}
+              className={ICON_BTN_CLS}
             >
-              <span aria-hidden>🎭</span> {t("guard.button")}
+              <span aria-hidden>🎭</span>
             </button>
           )}
 
@@ -201,6 +210,41 @@ export function PlatformOverlay({
               onToast={showPillToast}
             />
           )}
+
+          {tts.enabled && hasAssistantReply && (
+            <button
+              onClick={handleSpeak}
+              aria-label={t("tts.play")}
+              title={t("tts.play")}
+              className={ICON_BTN_CLS}
+            >
+              <span aria-hidden>🔊</span>
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* One-time coach-mark: the "it writes into the box, you press Enter"
+          flow is genuinely non-obvious, and the icon-only stack no longer
+          spells the actions out. Sits to the LEFT of the stack (right-[4.75rem]
+          clears the w-12 column at right-6) so it points at the icons without
+          covering them. Dismissed forever on tap. */}
+      {!open && !seenHint && !!activePersona && (
+        <div className="fixed bottom-[4.6rem] right-[4.75rem] z-[999999] w-56 max-w-[calc(100vw-5.5rem)] animate-fade-up rounded-2xl border border-gray-200/80 bg-white/95 p-3 shadow-lg backdrop-blur dark:border-gray-700 dark:bg-gray-800/95">
+          <div className="mb-1 text-xs font-semibold text-gray-900 dark:text-gray-50">
+            {t("hint.title")}
+          </div>
+          <p className="mb-2.5 text-[11px] leading-relaxed text-gray-600 dark:text-gray-300">
+            {t("hint.body")}
+          </p>
+          <div className="flex justify-end">
+            <button
+              onClick={dismissHint}
+              className="rounded-lg bg-persona-600 px-3 py-1 text-[11px] font-medium text-white shadow-sm transition hover:bg-persona-700"
+            >
+              {t("hint.dismiss")}
+            </button>
+          </div>
         </div>
       )}
 

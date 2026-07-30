@@ -107,12 +107,17 @@ export function MemoryNotePrompt({ persona, assistantReplySelector, onToast }: P
   }
 
   if (!expanded) {
+    // Icon-only, matching the other overlay stack buttons (ICON_BTN_CLS in
+    // PlatformOverlay). Briefly flips 📌 → ✅ after a save; the tooltip and the
+    // options "How it works" section carry the meaning that the label used to.
     return (
       <button
         onClick={open}
-        className="flex h-9 items-center gap-1.5 rounded-full border border-gray-200/80 bg-white/95 px-3.5 text-[12px] font-medium text-gray-700 shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95 dark:text-gray-200"
+        aria-label={t("pill.memory")}
+        title={t("tooltip.memory")}
+        className="flex h-9 w-9 items-center justify-center rounded-full border border-gray-200/80 bg-white/95 text-sm shadow-md backdrop-blur transition-all duration-200 hover:scale-105 hover:shadow-lg active:scale-95 dark:border-gray-700 dark:bg-gray-800/95"
       >
-        <span aria-hidden>📌</span> {justSaved ? t("memory.saved") : t("pill.memory")}
+        <span aria-hidden>{justSaved ? "✅" : "📌"}</span>
       </button>
     )
   }
