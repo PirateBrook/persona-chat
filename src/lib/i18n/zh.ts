@@ -150,6 +150,7 @@ export const zh: Messages = {
   "help.memory":
     "📌 记忆 —— 记下一条要记住的设定，或让 AI 概括目前剧情并固定下来。固定的记忆每次「增强」都会带回。",
   "help.flow": "应用一个角色 → 在对话框打字 → 点一个按钮 → 按 Enter。",
+  "help.feedback": "遇到问题或有想法？告诉我们 ↗",
   "lang.auto": "跟随浏览器",
   "lang.en": "English",
   "lang.zh": "中文",

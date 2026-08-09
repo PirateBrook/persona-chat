@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Persona.chat feedback</title>
+<meta name="robots" content="noindex" />
+<style>
+  :root {
+    color-scheme: light dark;
+    --bg: #ffffff;
+    --fg: #1f2430;
+    --muted: #6b7280;
+    --border: #e5e7eb;
+    --accent: #7c3aed;
+    --card: #f9fafb;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0f1115;
+      --fg: #e5e7eb;
+      --muted: #9ca3af;
+      --border: #262b36;
+      --accent: #a78bfa;
+      --card: #171a21;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--fg);
+    display: flex;
+    justify-content: center;
+    padding: 32px 16px 80px;
+  }
+  main { width: 100%; max-width: 480px; }
+  h1 { font-size: 1.25rem; margin-bottom: 4px; }
+  p.lede { color: var(--muted); font-size: 0.9rem; margin-top: 0; }
+  fieldset {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin: 0 0 16px;
+    background: var(--card);
+  }
+  legend { font-size: 0.8rem; font-weight: 600; color: var(--muted); padding: 0 4px; }
+  label.opt { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 0.92rem; cursor: pointer; }
+  textarea {
+    width: 100%;
+    min-height: 90px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--bg);
+    color: var(--fg);
+    padding: 10px;
+    font-size: 0.92rem;
+    font-family: inherit;
+    resize: vertical;
+  }
+  button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 11px 18px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  button:disabled { opacity: 0.6; cursor: default; }
+  .lang-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 0.75rem;
+    padding: 4px 10px;
+    border-radius: 999px;
+    float: right;
+  }
+  .honeypot { position: absolute; left: -9999px; width: 1px; height: 1px; overflow: hidden; }
+  #status { margin-top: 14px; font-size: 0.9rem; }
+  #status.ok { color: #16a34a; }
+  #status.err { color: #dc2626; }
+  #done h1 { margin-bottom: 8px; }
+</style>
+</head>
+<body>
+<main>
+  <button class="lang-toggle" id="langToggle" type="button">中文</button>
+  <div id="form-view">
+    <h1 id="heading">Quick feedback</h1>
+    <p class="lede" id="lede">Anonymous, optional, takes 20 seconds. Nothing you type ever gets linked to your chat history — this form doesn't know it.</p>
+
+    <form id="feedbackForm">
+      <input type="text" name="website" class="honeypot" tabindex="-1" autocomplete="off" />
+
+      <fieldset>
+        <legend id="reasonLegend">What's the main reason?</legend>
+        <div id="reasonOptions"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend id="platformLegend">Which site were you using? (optional)</legend>
+        <div id="platformOptions"></div>
+      </fieldset>
+
+      <fieldset>
+        <legend id="commentLegend">Anything else? (optional)</legend>
+        <textarea name="comment" id="comment" maxlength="2000"></textarea>
+      </fieldset>
+
+      <button type="submit" id="submitBtn">Send</button>
+      <div id="status" role="status"></div>
+    </form>
+  </div>
+
+  <div id="done" style="display:none;">
+    <h1 id="doneHeading">Thanks 🙏</h1>
+    <p id="doneBody" class="lede"></p>
+  </div>
+</main>
+
+<script>
+(function () {
+  var STRINGS = {
+    en: {
+      heading: "Quick feedback",
+      lede: "Anonymous, optional, takes 20 seconds. Nothing you type ever gets linked to your chat history — this form doesn't know it.",
+      reasonLegend: "What's the main reason?",
+      reasons: [
+        ["not_useful", "Didn't do what I needed"],
+        ["too_complex", "Too complicated / confusing"],
+        ["found_alternative", "Found something better"],
+        ["no_longer_needed", "Just don't need it anymore"],
+        ["privacy_permissions", "Privacy or permissions concern"],
+        ["other", "Other"]
+      ],
+      platformLegend: "Which site were you using? (optional)",
+      platforms: [
+        ["deepseek", "DeepSeek"],
+        ["claude", "Claude"],
+        ["chatgpt", "ChatGPT"],
+        ["none", "Never got to try it"]
+      ],
+      commentLegend: "Anything else? (optional)",
+      submit: "Send",
+      submitting: "Sending…",
+      errGeneric: "Couldn't send — please try again.",
+      doneHeading: "Thanks 🙏",
+      doneUninstall: "Sorry to see you go. This helps decide what to fix next.",
+      doneInapp: "Got it — read every one of these ourselves."
+    },
+    zh: {
+      heading: "留个反馈",
+      lede: "匿名、可选填、20 秒填完。你在这里写的任何内容都不会跟你的聊天记录关联——这个表单本身也看不到那些内容。",
+      reasonLegend: "主要原因是什么？",
+      reasons: [
+        ["not_useful", "没达到我需要的效果"],
+        ["too_complex", "太复杂/搞不明白"],
+        ["found_alternative", "找到了更好的替代品"],
+        ["no_longer_needed", "暂时不需要了"],
+        ["privacy_permissions", "隐私或权限方面的顾虑"],
+        ["other", "其他"]
+      ],
+      platformLegend: "你用的是哪个网站？（选填）",
+      platforms: [
+        ["deepseek", "DeepSeek"],
+        ["claude", "Claude"],
+        ["chatgpt", "ChatGPT"],
+        ["none", "还没来得及用"]
+      ],
+      commentLegend: "还想说点什么？（选填）",
+      submit: "发送",
+      submitting: "发送中…",
+      errGeneric: "没发送成功，再试一次？",
+      doneHeading: "谢谢 🙏",
+      doneUninstall: "很遗憾你卸载了，这条反馈会帮我们想清楚接下来该改什么。",
+      doneInapp: "收到了——每一条我们都会自己看。"
+    }
+  };
+
+  var params = new URLSearchParams(location.search);
+  var source = params.get("source") === "uninstall" ? "uninstall" : "inapp";
+  var lang = (navigator.language || "en").toLowerCase().indexOf("zh") === 0 ? "zh" : "en";
+
+  var els = {
+    heading: document.getElementById("heading"),
+    lede: document.getElementById("lede"),
+    reasonLegend: document.getElementById("reasonLegend"),
+    reasonOptions: document.getElementById("reasonOptions"),
+    platformLegend: document.getElementById("platformLegend"),
+    platformOptions: document.getElementById("platformOptions"),
+    commentLegend: document.getElementById("commentLegend"),
+    submitBtn: document.getElementById("submitBtn"),
+    status: document.getElementById("status"),
+    doneHeading: document.getElementById("doneHeading"),
+    doneBody: document.getElementById("doneBody"),
+    langToggle: document.getElementById("langToggle")
+  };
+
+  function render() {
+    var s = STRINGS[lang];
+    els.heading.textContent = s.heading;
+    els.lede.textContent = s.lede;
+    els.reasonLegend.textContent = s.reasonLegend;
+    els.platformLegend.textContent = s.platformLegend;
+    els.commentLegend.textContent = s.commentLegend;
+    els.submitBtn.textContent = s.submit;
+    els.langToggle.textContent = lang === "en" ? "中文" : "English";
+
+    els.reasonOptions.innerHTML = "";
+    s.reasons.forEach(function (pair, i) {
+      var label = document.createElement("label");
+      label.className = "opt";
+      label.innerHTML =
+        '<input type="radio" name="reason" value="' + pair[0] + '"' + (i === 0 ? " checked" : "") + "> " + pair[1];
+      els.reasonOptions.appendChild(label);
+    });
+
+    els.platformOptions.innerHTML = "";
+    s.platforms.forEach(function (pair) {
+      var label = document.createElement("label");
+      label.className = "opt";
+      label.innerHTML = '<input type="checkbox" name="platform" value="' + pair[0] + '"> ' + pair[1];
+      els.platformOptions.appendChild(label);
+    });
+  }
+
+  els.langToggle.addEventListener("click", function () {
+    lang = lang === "en" ? "zh" : "en";
+    render();
+  });
+
+  render();
+
+  var form = document.getElementById("feedbackForm");
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var s = STRINGS[lang];
+    var fd = new FormData(form);
+    var payload = {
+      source: source,
+      reason: fd.get("reason") || "other",
+      platforms: fd.getAll("platform"),
+      comment: (fd.get("comment") || "").toString().slice(0, 2000),
+      website: fd.get("website") || "", // honeypot
+      lang: lang
+    };
+
+    els.submitBtn.disabled = true;
+    els.submitBtn.textContent = s.submitting;
+    els.status.textContent = "";
+    els.status.className = "";
+
+    fetch("/api/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    })
+      .then(function (res) {
+        if (!res.ok) throw new Error("bad status");
+        document.getElementById("form-view").style.display = "none";
+        var done = document.getElementById("done");
+        done.style.display = "block";
+        els.doneHeading.textContent = s.doneHeading;
+        els.doneBody.textContent = source === "uninstall" ? s.doneUninstall : s.doneInapp;
+      })
+      .catch(function () {
+        els.status.textContent = s.errGeneric;
+        els.status.className = "err";
+        els.submitBtn.disabled = false;
+        els.submitBtn.textContent = s.submit;
+      });
+  });
+})();
+</script>
+</body>
+</html>

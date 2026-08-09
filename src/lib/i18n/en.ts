@@ -160,6 +160,7 @@ export const en = {
   "help.memory":
     "📌 Memory — save a fact to remember, or have the AI recap the story so far and pin it. Pinned memory comes back on every Enrich.",
   "help.flow": "Apply a persona → type in the chat box → tap a button → press Enter.",
+  "help.feedback": "Have a bug or an idea? Tell us ↗",
   "lang.auto": "Auto (browser)",
   "lang.en": "English",
   "lang.zh": "中文",

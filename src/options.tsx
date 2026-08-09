@@ -12,6 +12,7 @@ import {
 import { useI18n, type MessageKey } from "~lib/i18n"
 import { translateTag } from "~lib/i18n/tags"
 import { resizeImageFile } from "~lib/image-resize"
+import { feedbackUrl } from "~lib/feedback"
 import { estimateMemoryUsage, MEMORY_CHAR_BUDGET } from "~lib/memory"
 import { collectPersonaTagCounts, filterPersonas } from "~lib/persona-filter"
 import { subscribeStorageChanged } from "~lib/storage-events"
@@ -421,6 +422,14 @@ export default function Options() {
               <li>{t("help.memory")}</li>
             </ul>
             <p className="text-gray-500 dark:text-gray-400">{t("help.flow")}</p>
+            <a
+              href={feedbackUrl("inapp")}
+              target="_blank"
+              rel="noreferrer"
+              className="inline-block text-persona-600 underline decoration-persona-300 decoration-dotted underline-offset-4 transition hover:text-persona-700 dark:text-persona-400 dark:decoration-persona-700 dark:hover:text-persona-300"
+            >
+              {t("help.feedback")}
+            </a>
           </div>
         </details>
 
