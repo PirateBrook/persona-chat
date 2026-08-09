@@ -2,10 +2,13 @@
 
 ## [未发布]
 
+## [0.4.0] - 2026-08-09
+
 ### 卸载反馈 + 应内反馈
 - 卸载时弹出一个反馈小调查（`chrome.runtime.setUninstallURL`，浏览器原生跳转，插件本身零网络请求、零新权限）；设置页"使用说明"区块底部加了一条应内反馈链接，用法跟现有 chub.ai 外链完全一致
 - 反馈页面是独立的 Cloudflare Pages 站点（`feedback-site/`，不进插件包），双语表单 + 一个 Pages Function 把提交转发到 Discord/Slack webhook，不落数据库
 - 已完整部署并端到端验证通过：Cloudflare Pages（`persona-chat-feedback` 项目，`https://persona-chat-feedback.pages.dev`）+ `FEEDBACK_WEBHOOK_URL` secret 已配置指向一个 Discord webhook，真机 curl 测试提交后消息实际落到了 Discord 频道；`src/lib/feedback.ts` 的 `FEEDBACK_BASE_URL` 已回填真实地址，插件 build 产物里确认无残留占位符。若之后给 Pages 项目挂 `feedback.punkscosmos.com` 自定义域名（需在 Dashboard 手动加，wrangler 无对应 CLI 命令），只需改这一行常量
+- 补上了唯一漏掉的入口：popup 面板此前完全没有反馈链接，"管理角色"按钮下方新增一行低调的反馈文字链接（浅色/深色模式均已用 browser-cdp 截图验证）
 
 ### 商店文案发现性（Workstream C）
 - 商店短描述/详细描述整体改写：之前的文案（"a bar owner, a talking cat"）领着"角色扮演/陪伴平台"这个 7/30 战略收敛里明确退役的定位在讲；改成领着"有目的的人设"（练面试/练谈判/研究）+ 信任信号（无需 API Key/不上传），同步进 `locales/{en,zh_CN}/messages.json` 的 `extensionDescription`（新英文文案 122 字符，仍在 CWS 132 字符上限内）
