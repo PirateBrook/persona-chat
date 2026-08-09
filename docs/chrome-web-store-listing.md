@@ -181,15 +181,34 @@ Support email for the CWS developer dashboard: punkscosmos@gmail.com
 ## Assets checklist
 
 - [x] Icon (128px+, via Plasmo's generated set from `assets/icon.png`)
-- [x] Screenshots, 1280×800, in `docs/store-assets/`:
-      `screenshot-1-personas.png` (character list + tag filters),
-      `screenshot-2-scenes.png` (background gallery),
-      `screenshot-3-fullpage-background.png` (full-page atmosphere, no panel open),
-      `screenshot-4-persona-injected.png` (a persona's composed opening message
-      actually sitting in the real DeepSeek chat input — added after a
-      persona-driven install-decision review flagged that prospective users
-      want to see "what does talking to it actually look like," not just the
-      picker UI)
+- [x] **Screenshots retaken (2026-08-09), see `docs/aso-audit-2026-08-09.md`.**
+      The ASO audit found the live screenshots show personas removed in the
+      2026-07-24 roster cut and lead with the retired "roleplay platform"
+      framing. 8 new ones, 1280×800, EN+ZH, DeepSeek+ChatGPT, in
+      `docs/store-assets/2026-08-09-retake/` — ready to upload to the
+      Dashboard, replacing the old top-level ones in `docs/store-assets/`
+      (`screenshot-1-personas.png`, `screenshot-4-persona-injected.png` are
+      now superseded, don't upload alongside the new set):
+      - `screenshot-1-personas-{en,zh}.png` — DeepSeek, list filtered to the
+        "Work" tag (34 purposeful personas, zero leftover deleted content)
+      - `screenshot-4-persona-injected-{en,zh}.png` — DeepSeek, Behavioral
+        Interview Grill's opening message actually sitting in the chat input
+      - `screenshot-chatgpt-personas-{en,zh}.png` — ChatGPT, panel + list +
+        injected message in one frame
+      - `screenshot-chatgpt-injected-{en,zh}.png` — ChatGPT, clean injected view
+      - Known minor blemish: ChatGPT's own site chrome ("Upgrade" button etc.)
+        follows the logged-in account's ChatGPT language setting, not our
+        extension's language toggle — `screenshot-chatgpt-injected-en.png`
+        has English persona text with Chinese ChatGPT UI around it. Did not
+        change the account's ChatGPT language to fix this (that's a real
+        account setting, not something to flip for a screenshot). Eyeball
+        before uploading; likely fine since the visual focus is the injected
+        message, not ChatGPT's own chrome.
+      **Still stale, not yet retaken**: `screenshot-2-scenes.png`,
+      `screenshot-3-fullpage-background.png`, the Claude.ai pair
+      (`screenshot-5/6`), `screenshot-7-manage-personas.png` — none of these
+      show wrong/deleted content like 1/4 did, so lower urgency; leave for a
+      future pass.
 - [ ] Optional: small promo tile 440×280, large tile 920×680, marquee 1400×560
 - [x] Privacy policy — hosted at
       https://github.com/PirateBrook/persona-chat/blob/main/PRIVACY.md
