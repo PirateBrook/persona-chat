@@ -97,6 +97,7 @@ export const zh: Messages = {
   "popup.activeOn": "已在支持的站点使用",
   "popup.hint": "打开支持的站点（chat.deepseek.com 或 claude.ai）——Persona 按钮会出现在右下角。",
   "popup.manage": "管理角色",
+  "popup.feedback": "反馈 ↗",
 
   // ---- options.tsx ----
   "options.subtitle": "你的角色库 · 本地存储",

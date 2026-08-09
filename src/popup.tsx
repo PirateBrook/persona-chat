@@ -3,6 +3,7 @@ import { useEffect, useState } from "react"
 import "./style.css"
 
 import appIcon from "../assets/icon.png"
+import { feedbackUrl } from "~lib/feedback"
 import { useI18n } from "~lib/i18n"
 import { getAppState, getPersona } from "~storage"
 import type { PersonaCard } from "~types"
@@ -60,6 +61,15 @@ export default function Popup() {
       >
         {t("popup.manage")}
       </button>
+
+      <a
+        href={feedbackUrl("inapp")}
+        target="_blank"
+        rel="noreferrer"
+        className="mt-3 block text-center text-[11px] text-gray-400 underline decoration-gray-300 decoration-dotted underline-offset-4 transition hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+      >
+        {t("popup.feedback")}
+      </a>
     </div>
   )
 }

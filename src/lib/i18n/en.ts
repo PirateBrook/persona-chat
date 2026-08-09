@@ -102,6 +102,7 @@ export const en = {
   "popup.activeOn": "Active on supported sites",
   "popup.hint": "Open a supported chat site (chat.deepseek.com or claude.ai) — the Persona button appears bottom-right.",
   "popup.manage": "Manage personas",
+  "popup.feedback": "Feedback ↗",
 
   // ---- options.tsx ----
   "options.subtitle": "Your character library · stored locally",
