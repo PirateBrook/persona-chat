@@ -12,47 +12,61 @@ mockups.
 
 ## Category
 
-**Fun** (formerly "Just for Fun"). The core hook is roleplay/companion chat,
-not task productivity — several built-in personas lean career/work, but
-that's flavor within a fun/entertainment product, not the primary pitch.
-Alternative if "Fun" underperforms after launch: **Social & Communication**.
+**Recommendation (2026-08-09, Workstream C pass, pending your sign-off before
+changing it in the Dashboard): switch from "Fun" to "Productivity."** The
+2026-07-30 strategy pivot (`docs/strategy.md`) explicitly retired the
+"roleplay/companion platform" framing — the north star is now a one-click
+*purposeful*-persona launcher (practice an interview, negotiate, research a
+topic), with lighter roleplay/companion personas as a secondary hook, not the
+pitch. Keeping the listing in "Fun" advertises the identity we deliberately
+moved away from. Changing category is a live, visible Dashboard action (and
+may reset review/discovery standing), so treat this as a recommendation to
+approve, not something already applied.
+
+Alternative if "Productivity" undersells the fun/companion breadth: **Social
+& Communication**.
 
 ## Short description (≤132 characters)
 
-Revised after a persona-driven install-decision review (non-technical user,
-first time seeing the listing): lead with a concrete, evocative character
-name instead of jargon ("character cards"/"world info" read as unfamiliar
-terms to someone who's never used a roleplay tool), and move the privacy
-reassurance up from the bottom of the long description — "will this leak my
-chat history" was the reviewer's first unspoken worry, and it shouldn't wait
-until paragraph 6 to get answered.
+**Rewritten 2026-08-09** to match the post-pivot positioning — leads with the
+purposeful use cases (interview/negotiation practice, research) instead of
+"roleplay persona ... a bar owner, a talking cat," which markets the
+"companion platform" identity the strategy pivot retired. Trust signals (no
+API key, nothing uploaded) kept, since that was still the first unspoken
+worry in the original install-decision review.
 
-**English:**
-> Give DeepSeek, Claude, or ChatGPT a roleplay persona — a bar owner, a talking cat & more. Free, no chat data uploaded, no API key.
+**English** (122 chars):
+> AI personas for DeepSeek, Claude & ChatGPT — practice interviews, negotiate, research. Free, no API key, nothing uploaded.
 
-**中文:**
-> 给 DeepSeek、Claude 或 ChatGPT 装上「深夜小酒馆的老板」「不讲逻辑的猫」等角色扮演人设——完全免费、不上传聊天记录、无需 API Key。
+**中文** (66 字):
+> 给 DeepSeek、Claude、ChatGPT 装上人设——练面试、练谈判、做研究。免费，无需 API Key，不上传任何数据。
 
 ## Detailed description
 
 **English:**
 
-> Persona.chat turns your free DeepSeek, Claude, or ChatGPT session into a
-> roleplay and companion chat platform — no API key, no subscription, no
-> server of ours in the middle. It rides your own login on whichever site
-> you already use; we just help you set the scene.
+> Persona.chat turns your free DeepSeek, Claude, or ChatGPT chat into a
+> one-click tool for anything you'd normally rehearse or research alone —
+> practice a tough interview or a salary negotiation, structure your
+> thinking on a stock before you decide, or get a fast map of an
+> unfamiliar field. No API key, no subscription, no server of ours in the
+> middle — it just rides your own login on whichever site you already use.
 >
 > Nothing you type ever leaves your browser. Every persona, world info
 > entry, and background image lives only in your own local storage — we
 > don't have a server, so there's nowhere for it to go. See our privacy
 > policy for specifics.
 >
-> Character cards — basically "a character with its personality and
-> opening line pre-written." 100+ built-in personas spanning work, roleplay,
-> philosophy, and companion moods (a late-night bar owner, an illogical
-> talking cat) — or write your own with a personality, scenario, example
-> dialogue, and greeting. Already have cards from chub.ai or SillyTavern?
-> Import them directly (PNG or JSON) instead of starting from scratch.
+> Purposeful personas — pick a role (Behavioral Interview Grill, Salary
+> Negotiation Coach, Stock Research Structurer, New-Field Research Guide,
+> and more) and it opens by asking exactly what it needs to know — your
+> target role, your walk-away number, the ticker — instead of guessing.
+> 100+ built-in personas in total, including lighter roleplay and companion
+> moods (a late-night bar owner, an illogical talking cat) for when you
+> just want to have fun — or write your own with a personality, scenario,
+> example dialogue, and greeting. Already have cards from chub.ai or
+> SillyTavern? Import them directly (PNG or JSON) instead of starting from
+> scratch.
 >
 > World info — basically "a cheat sheet the character can glance at" —
 > attach keyword-triggered lore (a backstory detail, a running joke, a plot
@@ -74,21 +88,25 @@ until paragraph 6 to get answered.
 > Everything you type is still sent the normal way, by you, pressing Enter —
 > Persona.chat only ever prepares the message; it never sends anything on
 > its own. Add it free, pick a persona, and turn your next DeepSeek, Claude,
-> or ChatGPT chat into a scene.
+> or ChatGPT chat into exactly what you need it to be.
 
 **中文:**
 
-> Persona.chat 让你免费的 DeepSeek、Claude 或 ChatGPT 会话变成一个角色扮演/
-> 陪伴聊天平台——不需要 API Key,不需要订阅,中间也没有我们自己的服务器。它
-> 就是骑在你本来就在用的登录会话上(三个站点都行),我们只是帮你把场景搭好。
+> Persona.chat 把你免费的 DeepSeek、Claude 或 ChatGPT 会话变成一个一键工具
+> ——原本只能自己一个人练习或琢磨的事,现在有人陪你走一遍:练一次高压面试
+> 或薪资谈判、在下决定前把一只股票的分析思路理清楚、或者快速搞懂一个陌生
+> 领域该从哪儿看起。不需要 API Key,不需要订阅,中间也没有我们自己的服务
+> 器——它就是骑在你本来就在用的登录会话上(三个站点都行)。
 >
 > 不上传你的任何聊天内容。角色、世界设定、背景图片全部只存在你自己的
 > 浏览器本地——我们没有服务器,也没有地方可以接收你的数据。具体细节见我们的
 > 隐私政策。
 >
-> 角色卡——说白了就是"提前写好性格和开场白的一个角色"。100+ 个内置人设,
-> 覆盖职场、角色扮演、哲学思辨、陪伴等不同调性(比如"深夜小酒馆的老板"、
-> "不讲逻辑的猫"),也可以自己写:性格设定、场景、示例对话、开场白一应俱全。
+> 有目的的人设——挑一个角色(行为面试特训、薪资谈判教练、股票研究搭子、
+> 新领域研究向导等等),开场就会先问清楚它真正需要知道的信息——你要面试的
+> 岗位、你的谈判底线、股票代码——而不是瞎猜。内置人设 100+ 个,也包含更
+> 轻松的角色扮演/陪伴调性(比如"深夜小酒馆的老板"、"不讲逻辑的猫"),单纯
+> 想找点乐子也有;也可以自己写:性格设定、场景、示例对话、开场白一应俱全。
 > 已经有 chub.ai 或 SillyTavern 的角色卡?直接导入(PNG 或 JSON),不用从头写。
 >
 > 世界设定——说白了就是"给角色配一本小抄"——绑定几个关键词,聊到相关话题
@@ -106,8 +124,8 @@ until paragraph 6 to get answered.
 > 中英双语——界面和内容全面支持中英文,根据浏览器语言自动检测。
 >
 > 你发送的每一条消息,依然是你自己按回车发出去的——Persona.chat 只负责把
-> 消息准备好,绝不会替你自动发送任何内容。免费装上,选一个角色,下一次打开
-> DeepSeek、Claude 或 ChatGPT 就能开始。
+> 消息准备好,绝不会替你自动发送任何内容。免费装上,选一个角色,让下一次
+> 打开 DeepSeek、Claude 或 ChatGPT 正好变成你需要的样子。
 
 ## ASO audit notes (marketing-skills:aso, this pass)
 
@@ -118,6 +136,21 @@ above are gone, replaced with em-dash lead-ins), and no closing CTA (added
 to the end of both long descriptions). Screenshot 1 also leaked real
 personal DeepSeek chat history via the sidebar — see the Assets checklist
 below for status.
+
+**2026-08-09 pass (Workstream A/C, `docs/strategy.md`):** the short and
+detailed descriptions still marketed the pre-pivot "roleplay/companion
+platform" identity (`docs/strategy.md` explicitly retired that framing on
+2026-07-30) — rewrote both to lead with the purposeful-persona use cases
+(interview/negotiation practice, stock/domain research) instead of "a bar
+owner, a talking cat," synced the change into
+`locales/{en,zh_CN}/messages.json` (`extensionDescription`, which drives the
+manifest's `__MSG_extensionDescription__` and is what CWS's
+`PKG_MANIFEST_SUMMARY_TOO_LONG` check validates — new EN string is 122 chars,
+still under the 132-char limit from the 2026-07-28 incident), and flagged a
+**pending, not-yet-applied** category recommendation (Fun → Productivity) for
+sign-off before anyone touches the live Dashboard. Screenshots still show the
+old roleplay-led framing (bar owner/cat first) — not retaken this pass; flag
+for whoever preps the next submission.
 
 ## Permission justifications (for the CWS submission form)
 

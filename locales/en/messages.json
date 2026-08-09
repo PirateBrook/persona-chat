@@ -1,4 +1,4 @@
 {
   "extensionName": { "message": "Persona.chat", "description": "Extension display name." },
-  "extensionDescription": { "message": "Give DeepSeek, Claude, or ChatGPT a roleplay persona — a bar owner, a talking cat & more. Free, no chat data uploaded, no API key.", "description": "Short store listing description (EN)." }
+  "extensionDescription": { "message": "AI personas for DeepSeek, Claude & ChatGPT — practice interviews, negotiate, research. Free, no API key, nothing uploaded.", "description": "Short store listing description (EN)." }
 }

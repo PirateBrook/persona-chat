@@ -1,4 +1,4 @@
 {
   "extensionName": { "message": "Persona.chat", "description": "扩展显示名称。" },
-  "extensionDescription": { "message": "给 DeepSeek、Claude 或 ChatGPT 装上「深夜小酒馆的老板」「不讲逻辑的猫」等角色扮演人设——完全免费、不上传聊天记录、无需 API Key。", "description": "商店简短描述（中文）。" }
+  "extensionDescription": { "message": "给 DeepSeek、Claude、ChatGPT 装上人设——练面试、练谈判、做研究。免费，无需 API Key，不上传任何数据。", "description": "商店简短描述（中文）。" }
 }
