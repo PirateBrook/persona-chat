@@ -1,8 +1,8 @@
 # Chrome Web Store Review Report
 
 **Extension**: Persona.chat
-**Version**: 0.4.0
-**Scanned**: 2026-08-09
+**Version**: 0.4.1
+**Scanned**: 2026-08-27
 **Verdict**: LIKELY APPROVED
 
 ## Summary
@@ -12,11 +12,36 @@
 | CRITICAL | 0     |
 | HIGH     | 0     |
 | MEDIUM   | 0     |
-| PASS     | 12    |
+| PASS     | 13    |
 
 ---
 
-## Scope of this pass
+## Scope of this pass — 0.4.1 (2026-08-27)
+
+This release's diff vs 0.4.0: a one-time dismissible "rate it on the store" row in the
+options page (one outbound `target="_blank"` link to the extension's **own** Chrome Web
+Store `/reviews` pane, plus one new optional `AppState` boolean), and two UI bug fixes
+(options-page min-height so the persona list stays reachable in short viewports; literal
+`displayName` so the tab title stops rendering `__MSG_extensionName__`). No manifest
+changes, no new permissions, no new network calls.
+
+Verified directly against the diff rather than assumed:
+- `git diff -- src/` contains **zero** `fetch`/`XMLHttpRequest`/`WebSocket`/`sendBeacon` additions
+- the only new URL literal is `https://chromewebstore.google.com/detail/<id>/reviews`, used as an `<a href>` — a user-initiated navigation, not a request the extension makes
+- the `manifest` block of `package.json` is byte-identical to 0.4.0 (only `version` changed)
+- **zero** new `chrome.*` call sites (the dismiss write reuses the existing `setAppState`, which already routes through `safeChromeCall`)
+
+### Added check this pass
+
+- [x] Self-promotion is non-deceptive and non-nagging — the rating row is an inline
+  single line (not a modal or interstitial), only appears once the user actually has a
+  persona applied, is dismissible, and the dismissal persists (verified on Chrome for
+  Testing 152: dismiss → full page reload → still hidden, `hasDismissedRatePrompt: true`
+  in `chrome.storage.local`)
+
+---
+
+## Scope of the previous pass — 0.4.0
 
 This release's diff vs 0.3.0: two new bilingual personas (`seed_work_stock_research`,
 `seed_work_domain_research`, content-only, no new code paths), a store-listing copy
