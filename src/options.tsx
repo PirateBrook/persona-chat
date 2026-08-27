@@ -13,6 +13,7 @@ import { useI18n, type MessageKey } from "~lib/i18n"
 import { translateTag } from "~lib/i18n/tags"
 import { resizeImageFile } from "~lib/image-resize"
 import { feedbackUrl } from "~lib/feedback"
+import { STORE_REVIEWS_URL } from "~lib/store-listing"
 import { estimateMemoryUsage, MEMORY_CHAR_BUDGET } from "~lib/memory"
 import { collectPersonaTagCounts, filterPersonas } from "~lib/persona-filter"
 import { subscribeStorageChanged } from "~lib/storage-events"
@@ -115,6 +116,10 @@ export default function Options() {
         setUserNameDraft(null)
       })
     }, 400)
+  }
+
+  function dismissRatePrompt() {
+    void setAppState({ hasDismissedRatePrompt: true }).then(setAppStateLocal)
   }
 
   async function refresh() {
@@ -332,7 +337,7 @@ export default function Options() {
   }
 
   return (
-    <div className="flex h-screen flex-col bg-gray-50 font-sans text-gray-900 dark:bg-gray-950 dark:text-gray-100">
+    <div className="flex h-screen min-h-[1200px] flex-col bg-gray-50 font-sans text-gray-900 dark:bg-gray-950 dark:text-gray-100 md:min-h-[820px]">
       <div className="mx-auto flex min-h-0 w-full max-w-4xl flex-1 flex-col px-6 py-8">
         <header className="mb-6 flex flex-wrap items-center justify-between gap-3">
           <div>
@@ -432,6 +437,26 @@ export default function Options() {
             </a>
           </div>
         </details>
+
+        {appState?.activePersonaId && !appState.hasDismissedRatePrompt && (
+          <section className="mb-6 flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1.5 rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 text-xs shadow-sm dark:border-gray-800 dark:bg-gray-900">
+            <span className="text-gray-600 dark:text-gray-300">{t("rate.prompt")}</span>
+            <a
+              href={STORE_REVIEWS_URL}
+              target="_blank"
+              rel="noreferrer"
+              className="font-medium text-persona-600 underline decoration-persona-300 decoration-dotted underline-offset-4 transition hover:text-persona-700 dark:text-persona-400 dark:decoration-persona-700 dark:hover:text-persona-300"
+            >
+              {t("rate.cta")}
+            </a>
+            <button
+              onClick={dismissRatePrompt}
+              className="ml-auto rounded-lg px-2 py-1 font-medium text-gray-400 transition hover:bg-gray-100 hover:text-gray-600 dark:text-gray-500 dark:hover:bg-gray-800 dark:hover:text-gray-300"
+            >
+              {t("rate.dismiss")}
+            </button>
+          </section>
+        )}
 
         <section className="mb-6 inline-flex w-fit shrink-0 flex-col items-start gap-1.5 self-start rounded-xl border border-gray-200 bg-white px-3.5 py-2.5 shadow-sm dark:border-gray-800 dark:bg-gray-900">
           <div className="flex items-center gap-2.5">

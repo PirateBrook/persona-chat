@@ -155,6 +155,11 @@ export interface AppState {
    *  the hint shows the first time a persona is active with the panel closed;
    *  once dismissed it never returns. Read-site default (no migration). */
   hasSeenOverlayHint?: boolean
+  /** Whether the user has dismissed the one-time "rate it on the store"
+   *  row in the options page. Unset/false = the row shows whenever a
+   *  persona is currently applied (i.e. the user actually uses this);
+   *  once dismissed it never returns. Read-site default (no migration). */
+  hasDismissedRatePrompt?: boolean
 }
 
 export const DEFAULT_APP_STATE: AppState = {
